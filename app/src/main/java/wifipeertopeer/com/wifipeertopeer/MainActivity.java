@@ -96,17 +96,6 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 }
             });
 
-            Message myMessage = new Message();
-            myMessage.description = "See you on the other side!";
-
-            network.sendToAllDevices(myMessage, new SalutCallback() {
-                @Override
-                public void call() {
-                    Log.e(TAG, "Oh no! The data failed to send.");
-                }
-            });
-
-
             tv1.setText("Host_name: DEVICE"+id);
             tv2.setText("I am a HOST");
 
@@ -199,6 +188,20 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         catch (IOException ex)
         {
             Log.e(TAG, "Failed to parse network data.");
+        }
+
+        //this means host has recieved at least one message from clients which means that at least one client is registered with host
+        if(network.isRunningAsHost){ // if ishost or issome boolean true for first receipt from client then host can start sending data regardless of any message received from the clients TODO
+            Message myMessage = new Message();
+            myMessage.description = "Hello clients !!! from host "+network.thisDevice;
+            Log.d(TAG,myMessage.description);
+
+            network.sendToAllDevices(myMessage, new SalutCallback() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "Oh no! The data failed to send.");
+                }
+            });
         }
     }
 

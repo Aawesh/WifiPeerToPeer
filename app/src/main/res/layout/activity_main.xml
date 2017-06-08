@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="36dp"
+        android:layout_marginStart="30dp"
         android:layout_marginTop="34dp"
         android:text="Start Service" />
 
@@ -22,15 +22,15 @@
         android:text="Discover Services"
         android:layout_below="@+id/hosting_button"
         android:layout_alignStart="@+id/hosting_button"
-        android:layout_marginTop="44dp" />
+        android:layout_marginTop="20dp" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/hosting_button"
         android:layout_below="@+id/discover_services"
-        android:layout_marginTop="49dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginLeft="100dp"
         android:text="Unknown" />
 
     <TextView
@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/textView"
         android:layout_below="@+id/textView"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="20dp"
         android:text="Unregistered" />
 
     <TextView
@@ -48,24 +48,33 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/textView2"
         android:layout_below="@+id/textView2"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="20dp"
         android:text="Not received yet" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="20dp"
         android:text="0"
         android:layout_below="@+id/textView3"
         android:layout_alignStart="@+id/textView3" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/textView4"
+        android:layout_alignTop="@+id/textView5b"
+        android:text="0" />
 
     <TextView
         android:id="@+id/textViewb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/discover_services"
-        android:layout_alignTop="@+id/textView"
+        android:layout_below="@+id/discover_services"
+        android:layout_marginTop="40dp"
         android:text="User: " />
 
     <TextView
@@ -88,7 +97,6 @@
         android:id="@+id/textView4b"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/textView4"
         android:layout_alignBottom="@+id/textView4"
         android:layout_alignStart="@+id/textView3b"
         android:text="Sent: " />
@@ -102,12 +110,5 @@
         android:layout_marginTop="23dp"
         android:text="Received: " />
 
-    <TextView
-        android:id="@+id/textView5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView4"
-        android:layout_alignTop="@+id/textView5b"
-        android:text="0" />
 
 </RelativeLayout>

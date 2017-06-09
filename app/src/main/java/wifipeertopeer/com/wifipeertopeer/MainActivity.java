@@ -193,6 +193,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             userView.setText("Driver");
             statusView.setText("Stopped Discovering");
             messageView.setText("");
+            sentCountView.setText("");
+            receivedCountView.setText("");
         }
     }
 

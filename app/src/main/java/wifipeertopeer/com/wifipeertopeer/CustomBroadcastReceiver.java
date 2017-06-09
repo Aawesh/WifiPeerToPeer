@@ -26,8 +26,6 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        System.out.println("reached here ============= " );
-
         final String action = intent.getAction();
 
         //TODO do this in a background service because it is a long running tasks

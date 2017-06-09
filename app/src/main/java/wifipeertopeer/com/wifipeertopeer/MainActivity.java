@@ -1,5 +1,7 @@
 package wifipeertopeer.com.wifipeertopeer;
 
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -27,21 +29,34 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity implements SalutDataCallback, View.OnClickListener {
 
     public static final String TAG = "SalutTestApp";
+    public static final String CLIENT = "client";
+    public static final String HOST = "host";
     public SalutDataReceiver dataReceiver;
     public SalutServiceData serviceData;
-    public Salut network;
+    public static Salut network;
     public Button hostingBtn;
     public Button discoverBtn;
-    public TextView userView, statusView, messageView ,sentCountView, receivedCountView;
+    public TextView userView, statusView, messageView,receivedCountView;
+    public static TextView sentCountView;
     int id = 0;
+    public static int sentCount = 0;
+    public int receivedCount = 0;
 
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
+    private boolean isHostReceivedMessage = false;
+
+    private CustomBroadcastReceiver receiver;
+    private IntentFilter intentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("client");
+        intentFilter.addAction("host");
 
         hostingBtn = (Button) findViewById(R.id.hosting_button);
         discoverBtn = (Button) findViewById(R.id.discover_services);
@@ -49,10 +64,14 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         userView = (TextView) findViewById(R.id.textView);
         statusView = (TextView) findViewById(R.id.textView2);
         messageView = (TextView) findViewById(R.id.textView3);
+        sentCountView = (TextView) findViewById(R.id.textView4);
+        receivedCountView = (TextView) findViewById(R.id.textView5);
 
         hostingBtn.setOnClickListener(this);
         discoverBtn.setOnClickListener(this);
 
+        //BroadCastReceiver
+        receiver = new CustomBroadcastReceiver();
 
         /*Create a data receiver object that will bind the callback
         with some instantiated object from our app. */
@@ -129,6 +148,12 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                             isRegisretedWithHost = true;
                             Log.d(TAG, "We're now registered.");
                             statusView.setText("Registered with host: " + network.foundDevices.get(0).deviceName);
+
+                            //TODO sending messages continuously, using broadcast receiver and then a service. Now we send only for one time
+                            Intent clientIntent = new Intent(CLIENT);
+                            sendBroadcast(clientIntent);
+
+                            /* TODO do this part in BroadCastReceiver
                             //send message
                             Message myMessage = new Message();
                             myMessage.description = "Hello pedestrian !!!" + " from driver: " + network.thisDevice.deviceName;
@@ -139,7 +164,10 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                                     Log.e(TAG, "Oh no! The data failed to send.");
                                 }
                             });
+                            sentCount ++;
+                            sentCountView.setText(sentCount);
 //                            messageView.setText("Message sent from Client: "+myMessage.description);
+*/
                         }
                     }, new SalutCallback() {
                         @Override
@@ -184,14 +212,23 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
             Log.d(TAG, newMessage.description);  //See you on the other side!
             messageView.setText(newMessage.description);
-            //Do other stuff with data.
+
+            receivedCount ++;
+            receivedCountView.setText(String.valueOf(receivedCount));
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
         }
 
+        //this block shoudl run only once
         //this means host has recieved at least one message from clients which means that at least one client is registered with host
-        if (network.isRunningAsHost) { // if ishost or issome boolean true for first receipt from client then host can start sending data regardless of any message received from the clients TODO
-            Message myMessage = new Message();
+        if (network.isRunningAsHost && !isHostReceivedMessage) { // if ishost or issome boolean true for first receipt from client then host can start sending data regardless of any message received from the clients TODO
+            isHostReceivedMessage = true;
+
+            //TODO sending messages continuously, using broadcast receiver and then a service. Now we send only for one time
+            Intent hostIntent = new Intent(HOST);
+            sendBroadcast(hostIntent);
+
+         /*   Message myMessage = new Message();
             myMessage.description = "Hello driver !!! from pedestrian: " + network.thisDevice.deviceName;
             Log.d(TAG, myMessage.description);
 
@@ -201,6 +238,10 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                     Log.e(TAG, "Oh no! The data failed to send.");
                 }
             });
+
+            //first count
+            sentCount ++;
+            sentCountView.setText(sentCount);*/
         }
     }
 
@@ -217,6 +258,23 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         } else if (v.getId() == R.id.discover_services) {
             discoverServices();
         }
+    }
+
+    public static void updateCountandViews(){
+        sentCount ++;
+        sentCountView.setText(String.valueOf(sentCount));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(receiver,intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
     }
 
     @Override

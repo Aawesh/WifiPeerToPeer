@@ -36,7 +36,10 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
 // Define a listener that responds to location updates
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                speed = location.hasSpeed()?String.valueOf(location.getSpeed())+" m/s":"no speed";
+                speed = "Location = "+String.valueOf(location.getLatitude()) + String.valueOf(location.getLongitude());
+                speed += "\n speed = " + (location.hasSpeed()?String.valueOf(location.getSpeed())+" m/s":"no speed");
+
+
                 sendMessage(speed,action);
                 Log.d(action + " is sedning : ", speed);
             }

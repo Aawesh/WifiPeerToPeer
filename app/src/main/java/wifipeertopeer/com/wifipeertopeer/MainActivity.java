@@ -122,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 network.stopNetworkService(false);
                 isHostCreated = false;
             }
+            sentCountView.setText("");
+            receivedCountView.setText("");
         }
     }
 

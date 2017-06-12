@@ -9,11 +9,17 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.peak.salut.Callbacks.SalutCallback;
+
+import java.sql.Time;
+import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by aawesh on 6/8/17.
@@ -21,53 +27,47 @@ import com.peak.salut.Callbacks.SalutCallback;
 
 public class CustomBroadcastReceiver extends BroadcastReceiver {
 
-    private String speed;
-
     @Override
     public void onReceive(Context context, Intent intent) {
 
         final String action = intent.getAction();
 
-        //TODO do this in a background service because it is a long running tasks
+        char[] chars = new char[MainActivity.packetSize/2]; //524288 = 1MB/2 = 1024 KB , 2621440 = 5MB/2
+        Arrays.fill(chars,'a');
+        String message = new String(chars);
 
-        // Acquire a reference to the system Location Manager
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        sendMessageRepeatedly(message,action);
 
-// Define a listener that responds to location updates
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                speed = "Location = "+String.valueOf(location.getLatitude()) + String.valueOf(location.getLongitude());
-                speed += "\n speed = " + (location.hasSpeed()?String.valueOf(location.getSpeed())+" m/s":"no speed");
+    }
 
+    private void sendMessageRepeatedly(final String message, final String action) {
+        final Handler handler = new Handler();
+        final Timer timer = new Timer();
+        TimerTask sendMessageTask = new TimerTask() {
 
-                sendMessage(speed,action);
-                Log.d(action + " is sedning : ", speed);
-            }
+            private int count = 0;
 
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            sendMessage(message,action);
+                        } catch (Exception e) {
+                            Log.d(MainActivity.TAG,"Failed to send message due to TimerTask");
+                        }
+                    }
+                });
 
-            public void onProviderEnabled(String provider) {
-            }
+                if(++count == 1000) {
+                    timer.cancel();
+                    MainActivity.enableButton(MainActivity.sendingButton);
+                   Log.d(MainActivity.TAG, "All packets sent successfully");
 
-            public void onProviderDisabled(String provider) {
+                }
             }
         };
-
-        // Register the listener with the Location Manager to receive location updates
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(context,"Enable GPS", Toast.LENGTH_SHORT).show();
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }else{
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        }
+        timer.schedule(sendMessageTask, 0, 100); //execute in every 100 ms
 
     }
 

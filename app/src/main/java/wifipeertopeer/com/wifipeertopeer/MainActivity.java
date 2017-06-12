@@ -1,5 +1,6 @@
 package wifipeertopeer.com.wifipeertopeer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v7.app.AppCompatActivity;
@@ -9,7 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,41 +38,69 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     public SalutDataReceiver dataReceiver;
     public SalutServiceData serviceData;
     public static Salut network;
-    public Button hostingBtn;
-    public Button discoverBtn;
-    public TextView userView, statusView, messageView,receivedCountView;
-    public static TextView sentCountView;
+    public Button hostingButton,resetingButton;
+    public static Button sendingButton;
+    public Button joiningButton;
+    public TextView userView,receivedCountView;
+    public EditText speedView,packetSizeView;
+    public static TextView sentCountView,statusView;
     int id = 0;
     public static int sentCount = 0;
-    public int receivedCount = 0;
+    public static int receivedCount = 0;
+
+    public static String speed;
+    public static int packetSize;
 
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
-    private boolean isHostReceivedMessage = false;
 
     private CustomBroadcastReceiver receiver;
     private IntentFilter intentFilter;
+
+    private RelativeLayout rLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
+
+
         intentFilter = new IntentFilter();
         intentFilter.addAction("client");
         intentFilter.addAction("host");
 
-        hostingBtn = (Button) findViewById(R.id.hosting_button);
-        discoverBtn = (Button) findViewById(R.id.discover_services);
+        hostingButton = (Button) findViewById(R.id.hosting_button);
+        joiningButton = (Button) findViewById(R.id.joining_button);
+        sendingButton = (Button) findViewById(R.id.sending_button);
+        resetingButton = (Button) findViewById(R.id.reseting_button);
 
-        userView = (TextView) findViewById(R.id.textView);
-        statusView = (TextView) findViewById(R.id.textView2);
-        messageView = (TextView) findViewById(R.id.textView3);
-        sentCountView = (TextView) findViewById(R.id.textView4);
-        receivedCountView = (TextView) findViewById(R.id.textView5);
+        userView = (TextView) findViewById(R.id.userView);
+        statusView = (TextView) findViewById(R.id.statusView);
+        sentCountView = (TextView) findViewById(R.id.sentView);
+        receivedCountView = (TextView) findViewById(R.id.receivedView);
 
-        hostingBtn.setOnClickListener(this);
-        discoverBtn.setOnClickListener(this);
+        speedView = (EditText)findViewById(R.id.speed_editText);
+        packetSizeView = (EditText)findViewById(R.id.packetSize_editText);
+
+
+        hostingButton.setOnClickListener(this);
+        joiningButton.setOnClickListener(this);
+        sendingButton.setOnClickListener(this);
+        resetingButton.setOnClickListener(this);
+        rLayout.setOnClickListener(this);
+
+        disableButton(sendingButton);
+
+
+        //handle wifi
+        if (Salut.isWiFiEnabled(getApplicationContext())) {
+            Salut.disableWiFi(getApplicationContext());
+            Salut.enableWiFi(getApplicationContext());
+        }else{
+            Salut.enableWiFi(getApplicationContext());
+        }
 
         //BroadCastReceiver
         receiver = new CustomBroadcastReceiver();
@@ -102,46 +134,31 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 public void call(SalutDevice salutDevice) {
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
                     isHostCreated = true;
+                    enableButton(sendingButton);
                 }
             });
 
             userView.setText("Pedestrian DEVICE_" + id);
             statusView.setText("Service Started");
 
-            hostingBtn.setText("Stop Service");
-            discoverBtn.setAlpha(0.5f);
-            discoverBtn.setClickable(false);
-        } else {
-            userView.setText("Pedestrian");
-            statusView.setText("Service Stoppped");
-            messageView.setText("");
-            hostingBtn.setText("Start Service");
-            discoverBtn.setAlpha(1f);
-            discoverBtn.setClickable(true);
-            if (isHostCreated) {
-                network.stopNetworkService(false);
-                isHostCreated = false;
-            }
-            sentCountView.setText("");
-            receivedCountView.setText("");
+            disableButton(hostingButton);
+            disableButton(joiningButton);
+
         }
     }
+
+
 
     private void discoverServices() {
         if (!network.isRunningAsHost && !network.isDiscovering) {
             statusView.setText("Started Dsicovering");
+            userView.setText("Driver");
             network.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {
-                    Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_LONG).show();
 
-                    userView.setText("Driver");
                     statusView.setText("Host " + network.foundDevices.get(0).deviceName + " found");
-
-                    //TODO remove debug
-                    for (int i = 0; i < network.foundDevices.size(); i++) {
-                        Log.d("Host_" + i + 1, network.foundDevices.get(i).instanceName);
-                    }
 
                     //for now registered with the first host. Don't know what happens of there are multipe host
                     network.registerWithHost(network.foundDevices.get(0), new SalutCallback() {
@@ -150,26 +167,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                             isRegisretedWithHost = true;
                             Log.d(TAG, "We're now registered.");
                             statusView.setText("Registered with host: " + network.foundDevices.get(0).deviceName);
-
-                            //TODO sending messages continuously, using broadcast receiver and then a service. Now we send only for one time
-                            Intent clientIntent = new Intent(CLIENT);
-                            sendBroadcast(clientIntent);
-
-                            /* TODO do this part in BroadCastReceiver
-                            //send message
-                            Message myMessage = new Message();
-                            myMessage.description = "Hello pedestrian !!!" + " from driver: " + network.thisDevice.deviceName;
-
-                            network.sendToHost(myMessage, new SalutCallback() {
-                                @Override
-                                public void call() {
-                                    Log.e(TAG, "Oh no! The data failed to send.");
-                                }
-                            });
-                            sentCount ++;
-                            sentCountView.setText(sentCount);
-//                            messageView.setText("Message sent from Client: "+myMessage.description);
-*/
+                            enableButton(sendingButton);
                         }
                     }, new SalutCallback() {
                         @Override
@@ -179,25 +177,20 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                     });
                 }
             }, true);
-            discoverBtn.setText("Stop Discovery");
-            hostingBtn.setAlpha(0.5f);
-            hostingBtn.setClickable(false);
-        } else {
-            if(isRegisretedWithHost) {
-                network.stopServiceDiscovery(true);
-                network.unregisterClient(false);//TODO not sure about unregistering client here
-            }
 
-            discoverBtn.setText("Discover Services");
-            hostingBtn.setAlpha(1f);
-            hostingBtn.setClickable(false);
-
-            userView.setText("Driver");
-            statusView.setText("Stopped Discovering");
-            messageView.setText("");
-            sentCountView.setText("");
-            receivedCountView.setText("");
+            disableButton(hostingButton);
+            disableButton(joiningButton);
         }
+    }
+
+    private void disableButton(Button b) {
+        b.setAlpha(0.5f);
+        b.setClickable(false);
+    }
+
+    public static void enableButton(Button b) {
+        b.setAlpha(1f);
+        b.setClickable(true);
     }
 
     @Override
@@ -210,47 +203,25 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     /*Create a callback where we will actually process the data.*/
     @Override
     public void onDataReceived(Object o) {
-        //Data Is Received
         Log.d(TAG, "Received network data.");
+
         try {
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
-            Log.d(TAG, newMessage.description);  //See you on the other side!
-            messageView.setText(newMessage.description);
+            Log.d(TAG, newMessage.description.substring(0,2));  //See you on the other side!
 
             receivedCount ++;
             receivedCountView.setText(String.valueOf(receivedCount));
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
         }
-
-        //this block shoudl run only once
-        //this means host has recieved at least one message from clients which means that at least one client is registered with host
-        if (network.isRunningAsHost && !isHostReceivedMessage) { // if ishost or issome boolean true for first receipt from client then host can start sending data regardless of any message received from the clients TODO
-            isHostReceivedMessage = true;
-
-            //TODO sending messages continuously, using broadcast receiver and then a service. Now we send only for one time
-            Intent hostIntent = new Intent(HOST);
-            sendBroadcast(hostIntent);
-
-         /*   Message myMessage = new Message();
-            myMessage.description = "Hello driver !!! from pedestrian: " + network.thisDevice.deviceName;
-            Log.d(TAG, myMessage.description);
-
-            network.sendToAllDevices(myMessage, new SalutCallback() {
-                @Override
-                public void call() {
-                    Log.e(TAG, "Oh no! The data failed to send.");
-                }
-            });
-
-            //first count
-            sentCount ++;
-            sentCountView.setText(sentCount);*/
-        }
     }
 
     @Override
     public void onClick(View v) {
+
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
         if (!Salut.isWiFiEnabled(getApplicationContext())) {
             Toast.makeText(getApplicationContext(), "Please enable WiFi first.", Toast.LENGTH_SHORT).show();
@@ -259,15 +230,59 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
         if (v.getId() == R.id.hosting_button) {
             setupNetwork();
-        } else if (v.getId() == R.id.discover_services) {
+        } else if (v.getId() == R.id.joining_button) {
             discoverServices();
+        }else if(v.getId() == R.id.sending_button){
+            send();
+        }else if(v.getId() == R.id.reseting_button){
+            reset();
         }
+    }
+
+    private void send() {
+
+
+        Log.d(TAG, "Sending packets");
+
+
+        speed = speedView.getText().toString();
+        String size  = packetSizeView.getText().toString();
+
+        if(!size.equals("") && !speed.equals("")){
+            System.out.println("size = " + size);
+            packetSize = Integer.parseInt(size);
+
+            disableButton(sendingButton);
+
+
+            Log.d("(isHostCreated || isRegisretedWithHost): ", String.valueOf(isHostCreated || isRegisretedWithHost));
+
+            if(network.isRunningAsHost){
+                Intent hostIntent = new Intent(HOST);
+                sendBroadcast(hostIntent);
+            }else{
+                Intent hostIntent = new Intent(CLIENT);
+                sendBroadcast(hostIntent);
+            }
+        }else{
+            Toast.makeText(getBaseContext(),"Null input(s)",Toast.LENGTH_LONG).show();
+        }
+
+
     }
 
     public static void updateCountandViews(){
         sentCount ++;
         sentCountView.setText(String.valueOf(sentCount));
     }
+
+    public void reset(){
+        sentCount = 0;
+        receivedCount = 0;
+        sentCountView.setText("0");
+        receivedCountView.setText("0");
+    }
+
 
     @Override
     protected void onResume() {
@@ -287,12 +302,12 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
         if (network.isRunningAsHost) {
             if (isHostCreated) {
-                network.stopNetworkService(false);
+                network.stopNetworkService(true);
                 isHostCreated = false;
             }
         } else {
             if(isRegisretedWithHost) {
-                network.unregisterClient(false);
+                network.unregisterClient(true);
             }
         }
     }

@@ -1,114 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
     android:paddingRight="16dp" >
 
+
     <Button
         android:id="@+id/hosting_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="34dp"
-        android:text="Start Service" />
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:text="Host" />
 
     <Button
-        android:id="@+id/discover_services"
+        android:id="@+id/joining_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Discover Services"
-        android:layout_below="@+id/hosting_button"
-        android:layout_alignStart="@+id/hosting_button"
-        android:layout_marginTop="20dp" />
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        android:layout_toRightOf="@+id/hosting_button"
+        android:layout_marginLeft="20dp"
+        android:text="Join" />
+
+
+
+
+
+
+
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/discover_services"
-        android:layout_marginTop="40dp"
+        android:layout_alignStart="@+id/hosting_button"
+        android:layout_below="@+id/hosting_button"
+        android:layout_marginTop="25dp"
+        android:text="User: " />
+
+    <TextView
+        android:id="@+id/userView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/hosting_button"
+        android:layout_marginTop="25dp"
         android:layout_marginLeft="100dp"
         android:text="Unknown" />
 
+
+
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView"
-        android:layout_below="@+id/textView"
+        android:layout_alignStart="@+id/user"
+        android:layout_below="@+id/user"
         android:layout_marginTop="20dp"
+        android:text="Status: " />
+
+
+    <TextView
+        android:id="@+id/statusView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/userView"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="100dp"
         android:text="Unregistered" />
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView2"
-        android:layout_below="@+id/textView2"
-        android:layout_marginTop="20dp"
-        android:text="Not received yet" />
+
+
+
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/speed_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/user"
+        android:layout_below="@+id/user"
+        android:layout_marginTop="60dp"
+        android:text="Speed: " />
+
+    <EditText
+        android:id="@+id/speed_editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/userView"
+        android:layout_marginTop="40dp"
+        android:layout_marginLeft="100dp"
+        android:ems="6"
+        android:text=""
+        android:inputType="phone" />
+
+
+
+    <TextView
+        android:id="@+id/packetSize_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/speed_textView"
+        android:layout_below="@+id/speed_textView"
+        android:layout_marginTop="30dp"
+        android:text="Packet Size: " />
+
+    <EditText
+        android:id="@+id/packetSize_editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speed_editText"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="100dp"
+        android:ems="6"
+        android:text=""
+        android:inputType="phone" />
+
+
+    <Button
+        android:id="@+id/sending_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/packetSize_editText"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="100dp"
+        android:text="Send" />
+
+
+
+
+    <TextView
+        android:id="@+id/sent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/hosting_button"
+        android:layout_below="@+id/sending_button"
+        android:layout_marginTop="40dp"
+        android:text="Sent: " />
+
+
+    <TextView
+        android:id="@+id/sentView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="0"
+        android:layout_marginLeft="100dp"
+        android:layout_below="@+id/sending_button" />
+
+
+
+
+    <TextView
+        android:id="@+id/received"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/hosting_button"
+        android:layout_below="@+id/sent"
+        android:layout_marginTop="23dp"
+        android:text="Received: " />
+
+
+
+    <TextView
+        android:id="@+id/receivedView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="0"
-        android:layout_below="@+id/textView3"
-        android:layout_alignStart="@+id/textView3" />
+        android:layout_marginLeft="100dp"
+        android:layout_below="@+id/sentView" />
 
-    <TextView
-        android:id="@+id/textView5"
+
+
+
+    <Button
+        android:id="@+id/reseting_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView4"
-        android:layout_alignTop="@+id/textView5b"
-        android:text="0" />
+        android:layout_below="@+id/receivedView"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="100dp"
+        android:text="Reset" />
 
-    <TextView
-        android:id="@+id/textViewb"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/discover_services"
-        android:layout_below="@+id/discover_services"
-        android:layout_marginTop="40dp"
-        android:text="User: " />
-
-    <TextView
-        android:id="@+id/textView2b"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/textView3"
-        android:layout_alignStart="@+id/textViewb"
-        android:text="Status: " />
-
-    <TextView
-        android:id="@+id/textView3b"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView2b"
-        android:layout_alignTop="@+id/textView3"
-        android:text="Message: " />
-
-    <TextView
-        android:id="@+id/textView4b"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/textView4"
-        android:layout_alignStart="@+id/textView3b"
-        android:text="Sent: " />
-
-    <TextView
-        android:id="@+id/textView5b"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/textView4b"
-        android:layout_below="@+id/textView4b"
-        android:layout_marginTop="23dp"
-        android:text="Received: " />
 
 
 </RelativeLayout>

@@ -1,23 +1,21 @@
 package wifipeertopeer.com.wifipeertopeer;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.peak.salut.Callbacks.SalutCallback;
 
-import java.sql.Time;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.text.DateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -59,11 +57,10 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
                     }
                 });
 
-                if(++count == 1000) {
+                if(++count == MainActivity.noOfPacket) {
                     timer.cancel();
-                    MainActivity.enableButton(MainActivity.sendingButton);
-                   Log.d(MainActivity.TAG, "All packets sent successfully");
-
+                    Log.d(MainActivity.TAG, "All packets sent successfully");
+                    MainActivity.enableButton(MainActivity.resetingButton);
                 }
             }
         };

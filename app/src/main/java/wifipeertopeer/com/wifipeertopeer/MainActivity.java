@@ -3,6 +3,8 @@ package wifipeertopeer.com.wifipeertopeer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -26,7 +28,12 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.Random;
 
 
@@ -38,18 +45,19 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     public SalutDataReceiver dataReceiver;
     public SalutServiceData serviceData;
     public static Salut network;
-    public Button hostingButton,resetingButton;
-    public static Button sendingButton;
+    public Button hostingButton;
+    public static Button sendingButton, resetingButton;
     public Button joiningButton;
     public TextView userView,receivedCountView;
-    public EditText speedView,packetSizeView;
+    public EditText speedView,packetSizeView, noOfPacketView;
     public static TextView sentCountView,statusView;
     int id = 0;
     public static int sentCount = 0;
-    public static int receivedCount = 0;
+    public int receivedCount = 0;
+    String user="Unknown";
 
     public static String speed;
-    public static int packetSize;
+    public static int packetSize,noOfPacket;
 
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
@@ -61,15 +69,23 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
 
+
+        startApp();
+
+    }
+
+    private void startApp() {
+        rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
 
         intentFilter = new IntentFilter();
         intentFilter.addAction("client");
         intentFilter.addAction("host");
+
 
         hostingButton = (Button) findViewById(R.id.hosting_button);
         joiningButton = (Button) findViewById(R.id.joining_button);
@@ -83,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
         speedView = (EditText)findViewById(R.id.speed_editText);
         packetSizeView = (EditText)findViewById(R.id.packetSize_editText);
+        noOfPacketView = (EditText)findViewById(R.id.noOfPacket_editText);
 
 
         hostingButton.setOnClickListener(this);
@@ -92,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         rLayout.setOnClickListener(this);
 
         disableButton(sendingButton);
+        disableButton(resetingButton);
 
 
         //handle wifi
@@ -126,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         });
 
     }
+
 
     private void setupNetwork() {
         if (!network.isRunningAsHost) {
@@ -235,32 +254,31 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         }else if(v.getId() == R.id.sending_button){
             send();
         }else if(v.getId() == R.id.reseting_button){
-            reset();
+            saveAndReset();
         }
     }
 
     private void send() {
-
-
+        disableButton(resetingButton);
         Log.d(TAG, "Sending packets");
 
 
         speed = speedView.getText().toString();
         String size  = packetSizeView.getText().toString();
+        String no  = noOfPacketView.getText().toString();
 
-        if(!size.equals("") && !speed.equals("")){
-            System.out.println("size = " + size);
+        if(!size.equals("") && !speed.equals("") && !no.equals("")){
             packetSize = Integer.parseInt(size);
+            noOfPacket = Integer.parseInt(no);
 
             disableButton(sendingButton);
 
-
-            Log.d("(isHostCreated || isRegisretedWithHost): ", String.valueOf(isHostCreated || isRegisretedWithHost));
-
             if(network.isRunningAsHost){
+                user = HOST;
                 Intent hostIntent = new Intent(HOST);
                 sendBroadcast(hostIntent);
             }else{
+                user = CLIENT;
                 Intent hostIntent = new Intent(CLIENT);
                 sendBroadcast(hostIntent);
             }
@@ -276,11 +294,57 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         sentCountView.setText(String.valueOf(sentCount));
     }
 
-    public void reset(){
+    public void saveAndReset(){
+
+        enableButton(MainActivity.sendingButton);
+
+        String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
+
+        String data = currentDateTimeString + ";" + user + ";" + speed  + ";" + noOfPacket + ";" + packetSize + ";" + sentCount + ";"
+                + receivedCount + ";" + (receivedCount/sentCount)*100 + "\n";
+
+        writeToFile(data);
+
         sentCount = 0;
         receivedCount = 0;
+
         sentCountView.setText("0");
         receivedCountView.setText("0");
+
+        disableButton(resetingButton);
+    }
+
+
+    public void writeToFile(String data) {
+
+        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+        // Create the folder.
+        File folder = new File(path);
+        if (!folder.exists()) {
+            // Make it, if it doesn't exit
+            folder.mkdirs();
+        }
+
+        // Create the file.
+        File file = new File(folder, "log.txt");
+
+        try {
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileOutputStream fOut = new FileOutputStream(file,true);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.append(data);
+
+
+            System.out.println(" Successful ");
+            myOutWriter.close();
+
+            fOut.flush();
+            fOut.close();
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
     }
 
 
@@ -294,11 +358,13 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+//
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
 
         if (network.isRunningAsHost) {
             if (isHostCreated) {
@@ -310,5 +376,10 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 network.unregisterClient(true);
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        //do nothing
     }
 }

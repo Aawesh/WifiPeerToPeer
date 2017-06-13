@@ -48,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/hosting_button"
         android:layout_marginTop="25dp"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:text="Unknown" />
 
 
@@ -69,10 +69,29 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/userView"
         android:layout_marginTop="20dp"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:text="Unregistered" />
 
 
+    <TextView
+        android:id="@+id/noOfPacket_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/user"
+        android:layout_below="@+id/status"
+        android:layout_marginTop="30dp"
+        android:text="No.of packets: " />
+
+    <EditText
+        android:id="@+id/noOfPacket_editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/statusView"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="110dp"
+        android:ems="6"
+        android:text=""
+        android:inputType="phone" />
 
 
 
@@ -80,21 +99,23 @@
         android:id="@+id/speed_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/user"
-        android:layout_below="@+id/user"
-        android:layout_marginTop="60dp"
+        android:layout_alignStart="@+id/status"
+        android:layout_below="@+id/noOfPacket_textView"
+        android:layout_marginTop="30dp"
         android:text="Speed: " />
 
     <EditText
         android:id="@+id/speed_editText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/userView"
-        android:layout_marginTop="40dp"
-        android:layout_marginLeft="100dp"
+        android:layout_below="@+id/noOfPacket_textView"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="110dp"
         android:ems="6"
         android:text=""
         android:inputType="phone" />
+
+
 
 
 
@@ -113,7 +134,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/speed_editText"
         android:layout_marginTop="0dp"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:ems="6"
         android:text=""
         android:inputType="phone" />
@@ -125,7 +146,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/packetSize_editText"
         android:layout_marginTop="15dp"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:text="Send" />
 
 
@@ -137,7 +158,7 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/hosting_button"
         android:layout_below="@+id/sending_button"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:text="Sent: " />
 
 
@@ -145,9 +166,9 @@
         android:id="@+id/sentView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:text="0"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:layout_below="@+id/sending_button" />
 
 
@@ -159,7 +180,7 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/hosting_button"
         android:layout_below="@+id/sent"
-        android:layout_marginTop="23dp"
+        android:layout_marginTop="20dp"
         android:text="Received: " />
 
 
@@ -170,7 +191,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="0"
-        android:layout_marginLeft="100dp"
+        android:layout_marginLeft="110dp"
         android:layout_below="@+id/sentView" />
 
 
@@ -182,8 +203,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/receivedView"
         android:layout_marginTop="15dp"
-        android:layout_marginLeft="100dp"
-        android:text="Reset" />
+        android:layout_marginLeft="110dp"
+        android:text="Save and continue" />
 
 
 

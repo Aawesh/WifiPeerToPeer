@@ -64,16 +64,16 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
                 }
             }
         };
-        timer.schedule(sendMessageTask, 0, 100); //execute in every 100 ms
+        timer.schedule(sendMessageTask, 0, 500); //execute in every 100 ms
 
     }
 
-    private void sendMessage(String speed,String action) {
+    public static void sendMessage(String message,String action) {
 
         if(action != null){
 
             Message myMessage = new Message();
-            myMessage.description = speed ;
+            myMessage.description = message ;
 
             if(action.equals(MainActivity.CLIENT)){
                 MainActivity.network.sendToHost(myMessage, new SalutCallback() {
@@ -83,6 +83,7 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
                     }
                 });
             }else if(action.equals(MainActivity.HOST)){
+                MainActivity.sentTime = System.currentTimeMillis();
                 Log.d(MainActivity.TAG, myMessage.description);
 
                 MainActivity.network.sendToAllDevices(myMessage, new SalutCallback() {
@@ -91,9 +92,8 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
                         Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
                     }
                 });
+                MainActivity.updateCountandViews();
             }
-
-            MainActivity.updateCountandViews();
         }
     }
 }

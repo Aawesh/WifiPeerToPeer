@@ -153,17 +153,17 @@
 
 
     <TextView
-        android:id="@+id/sent"
+        android:id="@+id/delay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/hosting_button"
         android:layout_below="@+id/sending_button"
         android:layout_marginTop="20dp"
-        android:text="Sent: " />
+        android:text="Delay: " />
 
 
     <TextView
-        android:id="@+id/sentView"
+        android:id="@+id/delayView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -175,24 +175,24 @@
 
 
     <TextView
-        android:id="@+id/received"
+        android:id="@+id/sent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/hosting_button"
-        android:layout_below="@+id/sent"
+        android:layout_below="@+id/delay"
         android:layout_marginTop="20dp"
-        android:text="Received: " />
+        android:text="Sent: " />
 
 
 
     <TextView
-        android:id="@+id/receivedView"
+        android:id="@+id/sentView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="0"
         android:layout_marginLeft="110dp"
-        android:layout_below="@+id/sentView" />
+        android:layout_below="@+id/delayView" />
 
 
 
@@ -201,7 +201,7 @@
         android:id="@+id/reseting_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/receivedView"
+        android:layout_below="@+id/sentView"
         android:layout_marginTop="15dp"
         android:layout_marginLeft="110dp"
         android:text="Save and continue" />

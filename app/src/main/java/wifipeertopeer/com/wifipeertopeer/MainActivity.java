@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
 
@@ -46,18 +47,23 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     public SalutServiceData serviceData;
     public static Salut network;
     public Button hostingButton;
-    public static Button sendingButton, resetingButton;
+    public static Button sendingButton,resetingButton;
     public Button joiningButton;
     public TextView userView,receivedCountView;
-    public EditText speedView,packetSizeView, noOfPacketView;
-    public static TextView sentCountView,statusView;
+    public EditText speedView,packetSizeView,noOfPacketView;
+    public static TextView sentCountView,statusView,delayView;
     int id = 0;
-    public static int sentCount = 0;
-    public int receivedCount = 0;
     String user="Unknown";
 
     public static String speed;
-    public static int packetSize,noOfPacket;
+    public static int packetSize,noOfPacket,sentCount;
+
+
+    public static long sentTime = 0;
+    public static long receivedTime = 0;
+    public static long delay = 0;
+    public static long totalDelay = 0;
+    public static long receivedCount = 0;
 
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
@@ -94,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
         userView = (TextView) findViewById(R.id.userView);
         statusView = (TextView) findViewById(R.id.statusView);
+        delayView = (TextView) findViewById(R.id.delayView);
         sentCountView = (TextView) findViewById(R.id.sentView);
-        receivedCountView = (TextView) findViewById(R.id.receivedView);
 
         speedView = (EditText)findViewById(R.id.speed_editText);
         packetSizeView = (EditText)findViewById(R.id.packetSize_editText);
@@ -186,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                             isRegisretedWithHost = true;
                             Log.d(TAG, "We're now registered.");
                             statusView.setText("Registered with host: " + network.foundDevices.get(0).deviceName);
-                            enableButton(sendingButton);
+                            hideViews();
                         }
                     }, new SalutCallback() {
                         @Override
@@ -200,6 +206,28 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             disableButton(hostingButton);
             disableButton(joiningButton);
         }
+    }
+
+    private void hideViews() {
+        speedView.setVisibility(View.GONE);
+        packetSizeView.setVisibility(View.GONE);
+        sendingButton.setVisibility(View.GONE);
+        delayView.setVisibility(View.GONE);
+        noOfPacketView.setVisibility(View.GONE);
+        sentCountView.setVisibility(View.GONE);
+        resetingButton.setVisibility(View.GONE);
+
+        TextView sp = (TextView)findViewById(R.id.speed_textView);
+        TextView ps = (TextView)findViewById(R.id.packetSize_textView);
+        TextView d = (TextView)findViewById(R.id.delay);
+        TextView np = (TextView)findViewById(R.id.noOfPacket_textView);
+        TextView sent = (TextView)findViewById(R.id.sent);
+
+        sp.setVisibility(View.GONE);
+        ps.setVisibility(View.GONE);
+        d.setVisibility(View.GONE);
+        np.setVisibility(View.GONE);
+        sent.setVisibility(View.GONE);
     }
 
     private void disableButton(Button b) {
@@ -228,8 +256,21 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
             Log.d(TAG, newMessage.description.substring(0,2));  //See you on the other side!
 
-            receivedCount ++;
-            receivedCountView.setText(String.valueOf(receivedCount));
+            if(network.isRunningAsHost){
+                //record the received time and calcuate the difference between received time and sent time
+                receivedTime = System.currentTimeMillis();
+                delay = receivedTime-sentTime;
+
+                Log.d(TAG,String.valueOf(delay));
+
+                receivedCount++;
+                totalDelay += delay;
+
+                delayView.setText(String.valueOf(delay));
+
+            }else{
+                CustomBroadcastReceiver.sendMessage(newMessage.description,CLIENT);
+            }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
         }
@@ -296,20 +337,20 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
     public void saveAndReset(){
 
-        enableButton(MainActivity.sendingButton);
+        enableButton(sendingButton);
 
         String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
 
-        String data = currentDateTimeString + ";" + user + ";" + speed  + ";" + noOfPacket + ";" + packetSize + ";" + sentCount + ";"
-                + receivedCount + ";" + (receivedCount/sentCount)*100 + "\n";
-
+        String data = currentDateTimeString + ";" + noOfPacket + ";" + user + ";" + speed  + ";" + packetSize + ";" + (totalDelay/receivedCount) + "\n";
         writeToFile(data);
 
         sentCount = 0;
         receivedCount = 0;
+        delay = 0;
+        totalDelay = 0;
 
         sentCountView.setText("0");
-        receivedCountView.setText("0");
+        delayView.setText("0");
 
         disableButton(resetingButton);
     }
@@ -326,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         }
 
         // Create the file.
-        File file = new File(folder, "log.txt");
+        File file = new File(folder, "delay_log.txt");
 
         try {
             if(!file.exists()){
@@ -337,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             myOutWriter.append(data);
 
 
-            System.out.println(" Successful ");
+            System.out.println(" Successful data write ");
             myOutWriter.close();
 
             fOut.flush();

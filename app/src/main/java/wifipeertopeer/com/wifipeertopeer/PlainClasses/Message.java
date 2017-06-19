@@ -1,4 +1,4 @@
-package wifipeertopeer.com.wifipeertopeer;
+package wifipeertopeer.com.wifipeertopeer.PlainClasses;
 
 import com.bluelinelabs.logansquare.annotation.JsonField;
 import com.bluelinelabs.logansquare.annotation.JsonObject;

@@ -24,7 +24,7 @@ public class UserType {
 
     //TODO Find the user type in the realtime, this will be an asynchronous task
     private void findUserType() {
-        int id = 1; //0 for host and 1 for client change and run for testing purpose
+        int id = 0; //0 for host and 1 for client change and run for testing purpose
         String userType = (id == 0)? DefaultValueConstants.HOST : DefaultValueConstants.CLIENT;
 
         listener.onUserDetected(userType);

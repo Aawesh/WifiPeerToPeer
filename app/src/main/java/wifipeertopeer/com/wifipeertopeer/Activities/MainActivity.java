@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bluelinelabs.logansquare.LoganSquare;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     private IntentFilter intentFilter;
 
     private RelativeLayout rLayout;
+    private TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        handleWifi();
+//        handleWifi();
 
         initializeVariables();
 
@@ -70,18 +72,15 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             @Override
             public void onUserDetected(String user) {
                 if(user.equals(DefaultValueConstants.HOST)){
-                    //setupNetwork();
-                    System.out.println("user = " + user);
+                    setupNetwork();
                 }else{
-//                    discoverServices();
-                    System.out.println("user = " + user);
+                    discoverServices();
 
                 }
+                tv.setText(user);
+                System.out.println("user = " + user);
             }
         });
-
-
-
 
 
     }
@@ -94,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 public void call(SalutDevice salutDevice) {
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
                     isHostCreated = true;
+                    send();
                 }
             });
         }
@@ -114,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                         @Override
                         public void call() {
                             isRegisretedWithHost = true;
+//                            send();
                             Log.d(TAG, "We're now registered.");
                         }
                     }, new SalutCallback() {
@@ -142,14 +143,16 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
         try {
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
-            Log.d(TAG, newMessage.description.substring(0,2));  //See you on the other side!
+            Log.d(TAG, newMessage.description.substring(0,2));
 
             if(network.isRunningAsHost){
-                //record the received time and calcuate the difference between received time and sent time
               //TODO
+                System.out.println("newMessage.description = " + newMessage.description + " from client");
 
             }else{
                 //TODO
+                System.out.println("newMessage.description = " + newMessage.description + " from host");
+
             }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
@@ -194,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         intentFilter.addAction(DefaultValueConstants.CLIENT);
 
         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
+        tv = (TextView)findViewById(R.id.textView);
 
         receiver = new CustomBroadcastReceiver();
 
@@ -201,7 +205,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         with some instantiated object from our app. */
         dataReceiver = new SalutDataReceiver(this, this);
 
-        id = new Random().nextInt(10) + 65;
+        id = new Random().nextInt(10) + 70;
+        System.out.println("id ============== " + id);
 
         /*Populate the details for our awesome service. */
         serviceData = new SalutServiceData("PedestrianService", 8888, "DEVICE_" + id);

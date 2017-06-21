@@ -27,8 +27,10 @@ import com.peak.salut.SalutServiceData;
 import java.io.IOException;
 import java.util.Random;
 
+import wifipeertopeer.com.wifipeertopeer.BroadcastReceivers.ActivityDetectionBroadcastReceiver;
 import wifipeertopeer.com.wifipeertopeer.BroadcastReceivers.CustomBroadcastReceiver;
 import wifipeertopeer.com.wifipeertopeer.Interfaces.UserTypeListener;
+import wifipeertopeer.com.wifipeertopeer.PlainClasses.Constants;
 import wifipeertopeer.com.wifipeertopeer.PlainClasses.DefaultValueConstants;
 import wifipeertopeer.com.wifipeertopeer.PlainClasses.Message;
 import wifipeertopeer.com.wifipeertopeer.PlainClasses.UserType;
@@ -47,7 +49,9 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
 
-    private CustomBroadcastReceiver receiver;
+    private CustomBroadcastReceiver customBroadcastReceiver; //todo change the name
+    protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+
     private IntentFilter intentFilter;
 
     private RelativeLayout rLayout;
@@ -67,14 +71,14 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
 
 
-        UserType userType = new UserType();
+        UserType userType = new UserType(this,mBroadcastReceiver);
         userType.setUserTypeListener(new UserTypeListener() {
             @Override
             public void onUserDetected(String user) {
                 if(user.equals(DefaultValueConstants.HOST)){
-                    setupNetwork();
+                   // setupNetwork();
                 }else{
-                    discoverServices();
+                    //discoverServices();
 
                 }
                 tv.setText(user);
@@ -193,13 +197,14 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
     private void initializeVariables() {
         intentFilter = new IntentFilter();
-        intentFilter.addAction(DefaultValueConstants.HOST);
+        intentFilter.addAction(Constants.HOST);
         intentFilter.addAction(DefaultValueConstants.CLIENT);
 
         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
         tv = (TextView)findViewById(R.id.textView);
 
-        receiver = new CustomBroadcastReceiver();
+        customBroadcastReceiver = new CustomBroadcastReceiver();
+        mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
 
         /*Create a data receiver object that will bind the callback
         with some instantiated object from our app. */
@@ -238,13 +243,16 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(receiver,intentFilter);
+        registerReceiver(customBroadcastReceiver,intentFilter);
+        registerReceiver(mBroadcastReceiver,
+                new IntentFilter(Constants.BROADCAST_ACTION));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(receiver);
+        unregisterReceiver(customBroadcastReceiver);
+        unregisterReceiver(mBroadcastReceiver);
     }
 
     @Override

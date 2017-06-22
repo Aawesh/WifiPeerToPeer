@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
                 }
                 tv.setText(user);
-                System.out.println("user = " + user);
+                System.out.println("user ++++++++++++++ " + user);
             }
         });
 
@@ -211,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         dataReceiver = new SalutDataReceiver(this, this);
 
         id = new Random().nextInt(10) + 70;
-        System.out.println("id ============== " + id);
 
         /*Populate the details for our awesome service. */
         serviceData = new SalutServiceData("PedestrianService", 8888, "DEVICE_" + id);
@@ -243,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(customBroadcastReceiver,intentFilter);
+//        registerReceiver(customBroadcastReceiver,intentFilter);
         registerReceiver(mBroadcastReceiver,
                 new IntentFilter(Constants.BROADCAST_ACTION));
     }
@@ -251,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(customBroadcastReceiver);
+//        unregisterReceiver(customBroadcastReceiver);
         unregisterReceiver(mBroadcastReceiver);
     }
 

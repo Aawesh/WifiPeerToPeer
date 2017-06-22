@@ -135,7 +135,7 @@ public class UserType implements
 
             if(requestingUpdates){
                 //TODO stop updates
-                removeActivityUpdates();
+                //removeActivityUpdates();
 
             }else{
                 Log.d(TAG, "updates removed");

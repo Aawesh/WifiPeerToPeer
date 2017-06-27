@@ -1,279 +1,84 @@
 package wifipeertopeer.com.wifipeertopeer;
 
+import android.Manifest;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Environment;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.bluelinelabs.logansquare.LoganSquare;
-import com.peak.salut.Callbacks.SalutCallback;
-import com.peak.salut.Callbacks.SalutDataCallback;
-import com.peak.salut.Callbacks.SalutDeviceCallback;
-import com.peak.salut.Salut;
-import com.peak.salut.SalutDataReceiver;
-import com.peak.salut.SalutDevice;
-import com.peak.salut.SalutServiceData;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.text.DateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Random;
 
 
-public class MainActivity extends AppCompatActivity implements SalutDataCallback, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
 
-    public static final String TAG = "SalutTestApp";
-    public static final String CLIENT = "client";
-    public static final String HOST = "host";
-    public SalutDataReceiver dataReceiver;
-    public SalutServiceData serviceData;
-    public static Salut network;
-    public Button hostingButton;
-    public static Button sendingButton,resetingButton;
-    public Button joiningButton;
-    public TextView userView,receivedCountView;
-    public EditText speedView,packetSizeView,noOfPacketView;
-    public static TextView sentCountView,statusView,delayView;
-    int id = 0;
-    String user="Unknown";
+    private final String TAG = "MainActivity";
 
-    public static String speed;
-    public static int packetSize,noOfPacket,sentCount;
+    private LocationManager locationManager;
 
 
-    public static long sentTime = 0;
-    public static long receivedTime = 0;
-    public static long delay = 0;
-    public static long totalDelay = 0;
-    public static long receivedCount = 0;
+    boolean start = false;
+    boolean once = true;
 
-    private boolean isHostCreated = false;
-    private boolean isRegisretedWithHost = false;
-
-    private CustomBroadcastReceiver receiver;
-    private IntentFilter intentFilter;
-
+    String filename;
+    private Button button;
+    private EditText editText;
+    private TextView textView;
     private RelativeLayout rLayout;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
 
+    double latitude;
+    double longitude;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-        startApp();
-
-    }
-
-    private void startApp() {
+        button = (Button) findViewById(R.id.button1);
+        editText = (EditText) findViewById(R.id.editText);
+        textView = (TextView) findViewById(R.id.textView);
         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
 
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("client");
-        intentFilter.addAction("host");
 
-
-        hostingButton = (Button) findViewById(R.id.hosting_button);
-        joiningButton = (Button) findViewById(R.id.joining_button);
-        sendingButton = (Button) findViewById(R.id.sending_button);
-        resetingButton = (Button) findViewById(R.id.reseting_button);
-
-        userView = (TextView) findViewById(R.id.userView);
-        statusView = (TextView) findViewById(R.id.statusView);
-        delayView = (TextView) findViewById(R.id.delayView);
-        sentCountView = (TextView) findViewById(R.id.sentView);
-
-        speedView = (EditText)findViewById(R.id.speed_editText);
-        packetSizeView = (EditText)findViewById(R.id.packetSize_editText);
-        noOfPacketView = (EditText)findViewById(R.id.noOfPacket_editText);
-
-
-        hostingButton.setOnClickListener(this);
-        joiningButton.setOnClickListener(this);
-        sendingButton.setOnClickListener(this);
-        resetingButton.setOnClickListener(this);
+        button.setOnClickListener(this);
         rLayout.setOnClickListener(this);
 
-        disableButton(sendingButton);
-        disableButton(resetingButton);
+        button.setClickable(false);
+        button.setAlpha(0.5f);
 
-
-        //handle wifi
-        if (Salut.isWiFiEnabled(getApplicationContext())) {
-            Salut.disableWiFi(getApplicationContext());
-            Salut.enableWiFi(getApplicationContext());
-        }else{
-            Salut.enableWiFi(getApplicationContext());
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this, null);
 
-        //BroadCastReceiver
-        receiver = new CustomBroadcastReceiver();
-
-        /*Create a data receiver object that will bind the callback
-        with some instantiated object from our app. */
-        dataReceiver = new SalutDataReceiver(this, this);
-
-        id = new Random().nextInt(10) + 65;
-        /*Populate the details for our awesome service. */
-        serviceData = new SalutServiceData("PedestrianService", 8888, "DEVICE_" + id);
-
-        /*Create an instance of the Salut class, with all of the necessary data from before.
-        * We'll also provide a callback just in case a device doesn't support WiFi Direct, which
-        * Salut will tell us about before we start trying to use methods.*/
-        network = new Salut(dataReceiver, serviceData, new SalutCallback() {
-            @Override
-            public void call() {
-                // wiFiFailureDiag.show(); TODO
-                // OR
-                Log.e(TAG, "Sorry, but this device does not support WiFi Direct.");
-            }
-        });
-
-    }
-
-
-    private void setupNetwork() {
-        if (!network.isRunningAsHost) {
-            network.startNetworkService(new SalutDeviceCallback() {
-                @Override
-                public void call(SalutDevice salutDevice) {
-                    Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
-                    isHostCreated = true;
-                    enableButton(sendingButton);
-                }
-            });
-
-            userView.setText("Pedestrian DEVICE_" + id);
-            statusView.setText("Service Started");
-
-            disableButton(hostingButton);
-            disableButton(joiningButton);
-
-        }
-    }
-
-
-
-    private void discoverServices() {
-        if (!network.isRunningAsHost && !network.isDiscovering) {
-            statusView.setText("Started Dsicovering");
-            userView.setText("Driver");
-            network.discoverNetworkServices(new SalutCallback() {
-                @Override
-                public void call() {
-                    Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_LONG).show();
-
-                    statusView.setText("Host " + network.foundDevices.get(0).deviceName + " found");
-
-                    //for now registered with the first host. Don't know what happens of there are multipe host
-                    network.registerWithHost(network.foundDevices.get(0), new SalutCallback() {
-                        @Override
-                        public void call() {
-                            isRegisretedWithHost = true;
-                            Log.d(TAG, "We're now registered.");
-                            statusView.setText("Registered with host: " + network.foundDevices.get(0).deviceName);
-                            hideViews();
-                        }
-                    }, new SalutCallback() {
-                        @Override
-                        public void call() {
-                            Log.d(TAG, "We failed to register.");
-                        }
-                    });
-                }
-            }, true);
-
-            disableButton(hostingButton);
-            disableButton(joiningButton);
-        }
-    }
-
-    private void hideViews() {
-        speedView.setVisibility(View.GONE);
-        packetSizeView.setVisibility(View.GONE);
-        sendingButton.setVisibility(View.GONE);
-        delayView.setVisibility(View.GONE);
-        noOfPacketView.setVisibility(View.GONE);
-        sentCountView.setVisibility(View.GONE);
-        resetingButton.setVisibility(View.GONE);
-
-        TextView sp = (TextView)findViewById(R.id.speed_textView);
-        TextView ps = (TextView)findViewById(R.id.packetSize_textView);
-        TextView d = (TextView)findViewById(R.id.delay);
-        TextView np = (TextView)findViewById(R.id.noOfPacket_textView);
-        TextView sent = (TextView)findViewById(R.id.sent);
-
-        sp.setVisibility(View.GONE);
-        ps.setVisibility(View.GONE);
-        d.setVisibility(View.GONE);
-        np.setVisibility(View.GONE);
-        sent.setVisibility(View.GONE);
-    }
-
-    private void disableButton(Button b) {
-        b.setAlpha(0.5f);
-        b.setClickable(false);
-    }
-
-    public static void enableButton(Button b) {
-        b.setAlpha(1f);
-        b.setClickable(true);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    /*Create a callback where we will actually process the data.*/
-    @Override
-    public void onDataReceived(Object o) {
-        Log.d(TAG, "Received network data.");
-
-        try {
-            Message newMessage = LoganSquare.parse(o.toString(), Message.class);
-            Log.d(TAG, newMessage.description.substring(0,2));  //See you on the other side!
-
-            if(network.isRunningAsHost){
-                //record the received time and calcuate the difference between received time and sent time
-                receivedTime = System.currentTimeMillis();
-                delay = receivedTime-sentTime;
-
-                Log.d(TAG,String.valueOf(delay));
-
-                receivedCount++;
-                totalDelay += delay;
-
-                delayView.setText(String.valueOf(delay));
-
-            }else{
-                CustomBroadcastReceiver.sendMessage(newMessage.description,CLIENT);
-            }
-        } catch (IOException ex) {
-            Log.e(TAG, "Failed to parse network data.");
-        }
     }
 
     @Override
@@ -283,82 +88,79 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                 Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-        if (!Salut.isWiFiEnabled(getApplicationContext())) {
-            Toast.makeText(getApplicationContext(), "Please enable WiFi first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (v.getId() == R.id.hosting_button) {
-            setupNetwork();
-        } else if (v.getId() == R.id.joining_button) {
-            discoverServices();
-        }else if(v.getId() == R.id.sending_button){
-            send();
-        }else if(v.getId() == R.id.reseting_button){
-            saveAndReset();
+        switch (v.getId()) {
+            case R.id.button1:
+                if (!start) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return;
+                    }
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+                    filename = editText.getText().toString();
+                    filename = filename.equals("")?"location":filename;
+                    start = true;
+                    button.setText("Stop");
+                }else{
+                    locationManager.removeUpdates(this);
+                    start = false ;
+                    button.setText("Start");
+                    textView.setText("Stopped listening GPS data");
+                }
+                break;
         }
     }
 
-    private void send() {
-        disableButton(resetingButton);
-        Log.d(TAG, "Sending packets");
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            if (once) {
+                once = false;
+                button.setClickable(true);
+                button.setAlpha(1f);
+                textView.setText("GPS connected");
+            } else {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                String data = latitude + "," + longitude + "\n";
 
+                Log.d(TAG,data);
 
-        speed = speedView.getText().toString();
-        String size  = packetSizeView.getText().toString();
-        String no  = noOfPacketView.getText().toString();
-
-        if(!size.equals("") && !speed.equals("") && !no.equals("")){
-            packetSize = Integer.parseInt(size);
-            noOfPacket = Integer.parseInt(no);
-
-            disableButton(sendingButton);
-
-            if(network.isRunningAsHost){
-                user = HOST;
-                Intent hostIntent = new Intent(HOST);
-                sendBroadcast(hostIntent);
-            }else{
-                user = CLIENT;
-                Intent hostIntent = new Intent(CLIENT);
-                sendBroadcast(hostIntent);
+                textView.setText(latitude + "\t\t\t"+longitude);
+                writeToFile(data,filename);
             }
-        }else{
-            Toast.makeText(getBaseContext(),"Null input(s)",Toast.LENGTH_LONG).show();
         }
-
-
-    }
-
-    public static void updateCountandViews(){
-        sentCount ++;
-        sentCountView.setText(String.valueOf(sentCount));
-    }
-
-    public void saveAndReset(){
-
-        enableButton(sendingButton);
-
-        String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
-
-        String data = currentDateTimeString + ";" + noOfPacket + ";" + user + ";" + speed  + ";" + packetSize + ";" + (totalDelay/receivedCount) + "\n";
-        writeToFile(data);
-
-        sentCount = 0;
-        receivedCount = 0;
-        delay = 0;
-        totalDelay = 0;
-
-        sentCountView.setText("0");
-        delayView.setText("0");
-
-        disableButton(resetingButton);
     }
 
 
-    public void writeToFile(String data) {
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
 
-        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+        textView.setText("GPS state: ON");
+        button.setAlpha(1f);
+        button.setClickable(true);
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+        textView.setText("GPS state: OFF");
+        button.setAlpha(0.5f);
+        button.setClickable(false);
+
+    }
+
+    public void writeToFile(String data,String filename) {
+
+        String path = Environment.getExternalStorageDirectory() + File.separator + "LocationData";
         // Create the folder.
         File folder = new File(path);
         if (!folder.exists()) {
@@ -367,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         }
 
         // Create the file.
-        File file = new File(folder, "delay_log.txt");
+        File file = new File(folder, filename+".csv");
 
         try {
             if(!file.exists()){
@@ -378,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             myOutWriter.append(data);
 
 
-            System.out.println(" Successful data write ");
+            Log.d(TAG," Successful data write ");
             myOutWriter.close();
 
             fOut.flush();
@@ -386,41 +188,5 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(receiver,intentFilter);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-//
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-
-        if (network.isRunningAsHost) {
-            if (isHostCreated) {
-                network.stopNetworkService(true);
-                isHostCreated = false;
-            }
-        } else {
-            if(isRegisretedWithHost) {
-                network.unregisterClient(true);
-            }
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        //do nothing
     }
 }

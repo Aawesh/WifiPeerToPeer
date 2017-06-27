@@ -1,211 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingLeft="16dp"
-    android:paddingRight="16dp" >
-
-
-    <Button
-        android:id="@+id/hosting_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    android:paddingRight="16dp"
+    android:id="@+id/mainLayout">
+    <EditText
+        android:id="@+id/editText"
+        android:layout_height="52dp"
+        android:layout_width="221dp"
+        android:inputType="text"
+        android:layout_marginTop="47dp"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="20dp"
-        android:text="Host" />
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="51dp" />
 
     <Button
-        android:id="@+id/joining_button"
+        android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="20dp"
-        android:layout_toRightOf="@+id/hosting_button"
-        android:layout_marginLeft="20dp"
-        android:text="Join" />
-
-
-
-
-
-
-
+        android:text="Start"
+        android:layout_marginTop="51dp"
+        android:layout_below="@+id/editText"
+        android:layout_centerHorizontal="true" />
 
     <TextView
-        android:id="@+id/user"
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/hosting_button"
-        android:layout_below="@+id/hosting_button"
-        android:layout_marginTop="25dp"
-        android:text="User: " />
-
-    <TextView
-        android:id="@+id/userView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/hosting_button"
-        android:layout_marginTop="25dp"
-        android:layout_marginLeft="110dp"
-        android:text="Unknown" />
-
-
-
-    <TextView
-        android:id="@+id/status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/user"
-        android:layout_below="@+id/user"
-        android:layout_marginTop="20dp"
-        android:text="Status: " />
-
-
-    <TextView
-        android:id="@+id/statusView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/userView"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="110dp"
-        android:text="Unregistered" />
-
-
-    <TextView
-        android:id="@+id/noOfPacket_textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/user"
-        android:layout_below="@+id/status"
-        android:layout_marginTop="30dp"
-        android:text="No.of packets: " />
-
-    <EditText
-        android:id="@+id/noOfPacket_editText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/statusView"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="110dp"
-        android:ems="6"
+        android:layout_marginTop="91dp"
         android:text=""
-        android:inputType="phone" />
-
-
-
-    <TextView
-        android:id="@+id/speed_textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/status"
-        android:layout_below="@+id/noOfPacket_textView"
-        android:layout_marginTop="30dp"
-        android:text="Speed: " />
-
-    <EditText
-        android:id="@+id/speed_editText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/noOfPacket_textView"
-        android:layout_marginTop="0dp"
-        android:layout_marginLeft="110dp"
-        android:ems="6"
-        android:text=""
-        android:inputType="phone" />
-
-
-
-
+        android:layout_below="@+id/button1"
+        android:layout_alignStart="@+id/editText"
+        android:layout_marginStart="15dp" />
 
     <TextView
-        android:id="@+id/packetSize_textView"
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/speed_textView"
-        android:layout_below="@+id/speed_textView"
-        android:layout_marginTop="30dp"
-        android:text="Packet Size: " />
-
-    <EditText
-        android:id="@+id/packetSize_editText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/speed_editText"
-        android:layout_marginTop="0dp"
-        android:layout_marginLeft="110dp"
-        android:ems="6"
-        android:text=""
-        android:inputType="phone" />
-
-
-    <Button
-        android:id="@+id/sending_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/packetSize_editText"
-        android:layout_marginTop="15dp"
-        android:layout_marginLeft="110dp"
-        android:text="Send" />
-
-
-
-
-    <TextView
-        android:id="@+id/delay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/hosting_button"
-        android:layout_below="@+id/sending_button"
-        android:layout_marginTop="20dp"
-        android:text="Delay: " />
-
-
-    <TextView
-        android:id="@+id/delayView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="0"
-        android:layout_marginLeft="110dp"
-        android:layout_below="@+id/sending_button" />
-
-
-
-
-    <TextView
-        android:id="@+id/sent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/hosting_button"
-        android:layout_below="@+id/delay"
-        android:layout_marginTop="20dp"
-        android:text="Sent: " />
-
-
-
-    <TextView
-        android:id="@+id/sentView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="0"
-        android:layout_marginLeft="110dp"
-        android:layout_below="@+id/delayView" />
-
-
-
-
-    <Button
-        android:id="@+id/reseting_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/sentView"
-        android:layout_marginTop="15dp"
-        android:layout_marginLeft="110dp"
-        android:text="Save and continue" />
-
-
+        android:layout_alignBottom="@+id/editText"
+        android:layout_marginBottom="12dp"
+        android:layout_toStartOf="@+id/editText"
+        android:text="Filename: " />
 
 </RelativeLayout>

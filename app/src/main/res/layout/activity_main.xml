@@ -6,42 +6,39 @@
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
     android:id="@+id/mainLayout">
-    <EditText
-        android:id="@+id/editText"
-        android:layout_height="52dp"
-        android:layout_width="221dp"
-        android:inputType="text"
-        android:layout_marginTop="47dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="45dp" />
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/initialize_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="69dp"
+        android:text="Initialize " />
+
+    <Button
+        android:id="@+id/start_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start"
-        android:layout_marginTop="51dp"
-        android:layout_below="@+id/editText"
+        android:layout_alignBaseline="@+id/initialize_btn"
+        android:layout_alignBottom="@+id/initialize_btn"
         android:layout_centerHorizontal="true" />
 
     <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="91dp"
-        android:text=""
-        android:layout_below="@+id/button1"
-        android:layout_alignStart="@+id/editText"
-        android:layout_marginStart="15dp" />
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/initialize_btn"
+        android:layout_marginStart="75dp"
+        android:layout_marginTop="113dp" />
 
-    <TextView
-        android:id="@+id/textView2"
+    <Button
+        android:id="@+id/stop_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/editText"
-        android:layout_marginBottom="12dp"
-        android:layout_toStartOf="@+id/editText"
-        android:text="Filename: " />
+        android:layout_alignBottom="@+id/start_btn"
+        android:layout_alignParentEnd="true"
+        android:text="Stop" />
 
 </RelativeLayout>

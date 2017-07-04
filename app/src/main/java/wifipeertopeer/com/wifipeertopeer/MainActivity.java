@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 200, 0, this);
     }
 
     private void initializeGPS() {
@@ -89,9 +89,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this, null);
 
         textView.setText("Initialized GPS");
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+
+
+
     }
 
     private void promptToEnableGPS() {

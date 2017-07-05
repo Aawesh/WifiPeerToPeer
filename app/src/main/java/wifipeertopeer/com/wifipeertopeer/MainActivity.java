@@ -1,21 +1,27 @@
 package wifipeertopeer.com.wifipeertopeer;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
@@ -45,19 +51,56 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.floating);
 
         initialize_btn = (Button) findViewById(R.id.initialize_btn);
         start_btn = (Button) findViewById(R.id.start_btn);
         stop_btn = (Button) findViewById(R.id.stop_btn);
         textView = (TextView) findViewById(R.id.textView);
-        rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
+       // rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
+
+        showAlerDialog();
 
 
-        initialize_btn.setOnClickListener(this);
-        start_btn.setOnClickListener(this);
-        stop_btn.setOnClickListener(this);
-        rLayout.setOnClickListener(this);
+//        initialize_btn.setOnClickListener(this);
+//        start_btn.setOnClickListener(this);
+//        stop_btn.setOnClickListener(this);
+        //rLayout.setOnClickListener(this);
+    }
+
+    private void showAlerDialog() {
+
+        Dialog warning = new Dialog(this);
+        warning.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        warning.setTitle("Alert !!!");
+        warning.setContentView(getLayoutInflater().inflate(R.layout.image_layout
+                , null));
+        warning.show();
+
+        /*
+        AlertDialog.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                builder = new AlertDialog.Builder(new ContextThemeWrapper(this, android.R.style.Theme_Material_Dialog_Alert));
+
+        } else {
+            builder = new AlertDialog.Builder(this);
+        }
+
+        builder.setMessage("Be careful !!!")
+//                .setIcon(R.drawable.warning)
+                .setTitle("Safety first")
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+                */
+
+
     }
 
     private void startLocationUpdates() {

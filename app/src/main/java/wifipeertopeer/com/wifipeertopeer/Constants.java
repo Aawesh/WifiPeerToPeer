@@ -47,6 +47,17 @@ public final class Constants {
     public static final String HOST = "Pedestrian";
     public static final String CLIENT = "Driver";
 
+    public static final double CROSSINGLATITUDE = 44.3125065;
+    public static final double CROSSINGLONGITUDE = -96.7771053;
+
+    static double f0 = 0.00; //TODO ask
+    static double cd = 0.25;
+    static double mew_k = 0.8;
+    static double g = 9.8; //m/s2
+    static double row = 1.23; //kg/m3
+    static double mass = 1400.00; //kg
+    static double a = 2.7; //m2
+
     /**
      * The desired time between activity detections. Larger values result in fewer activity
      * detections while improving battery life. A value of 0 results in activity detections at the

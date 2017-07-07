@@ -73,10 +73,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
         startApp();
-
     }
 
     private void startApp() {

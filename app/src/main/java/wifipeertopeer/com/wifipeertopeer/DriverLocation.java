@@ -26,8 +26,6 @@ public class DriverLocation implements LocationListener {
     private double mLatitude = 0.0;
     private double mLongitude = 0.0;
 
-    private double crossingLatitude = 0.0;
-    private double crossingLongitude = 0.0;
 
     Location crossingLocation;
     double d_c = 0.0; //distance to crossing
@@ -38,8 +36,8 @@ public class DriverLocation implements LocationListener {
     public DriverLocation() {
 
         crossingLocation = new Location("crossingLocation");
-        crossingLocation.setLatitude(crossingLatitude);
-        crossingLocation.setLongitude(crossingLongitude);
+        crossingLocation.setLatitude(Constants.CROSSINGLATITUDE);
+        crossingLocation.setLongitude(Constants.CROSSINGLONGITUDE);
 
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

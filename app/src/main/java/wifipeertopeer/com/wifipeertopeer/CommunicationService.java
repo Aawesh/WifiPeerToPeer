@@ -32,6 +32,8 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 
+import org.apache.commons.math3.distribution.LogNormalDistribution;
+
 import java.io.IOException;
 import java.util.Random;
 
@@ -52,37 +54,22 @@ public class CommunicationService extends Service {
 
 
 
-    ////////////////////////////////////////////////
+    /////////////////////////////////////////////
     public static final String TAG = "SalutTestApp";
-    public static final String CLIENT = "client";
-    public static final String HOST = "host";
     public SalutDataReceiver dataReceiver;
     public SalutServiceData serviceData;
     public static Salut network;
-    public Button hostingButton;
-    public static Button sendingButton, resetingButton;
-    public Button joiningButton;
-    public TextView userView,receivedCountView;
-    public EditText speedView,packetSizeView, noOfPacketView;
-    public static TextView sentCountView,statusView;
     int id = 0;
-    public static int sentCount = 0;
-    public int receivedCount = 0;
-    String user="Unknown";
-
-    public static String speed;
-    public static int packetSize,noOfPacket;
 
     private boolean isHostCreated = false;
     private boolean isRegisretedWithHost = false;
 
-    private CustomBroadcastReceiver receiver;
-    private IntentFilter intentFilter;
-
-    private RelativeLayout rLayout;
-
     private AlertZone alertZone;
     private DriverLocation driverLocation;
+
+    public long sentTime = 0;
+    public long receivedTime = 0;
+    public long t_delay = 0;
 
 ///////////////////////////////////////////////
 
@@ -123,7 +110,6 @@ public class CommunicationService extends Service {
         dataReceiver = new SalutDataReceiver((Activity) UserSelectionActivity.context, new SalutDataCallback() {
             @Override
             public void onDataReceived(Object o) {
-                //TODO data received 2.
                 receiveMessage(o);
             }
         });
@@ -138,7 +124,7 @@ public class CommunicationService extends Service {
         network = new Salut(dataReceiver, serviceData, new SalutCallback() {
             @Override
             public void call() {
-                // wiFiFailureDiag.show(); TODO
+                // wiFiFailureDiag.show();
                 // OR
                 Log.e(TAG, "Sorry, but this device does not support WiFi Direct.");
             }
@@ -147,14 +133,12 @@ public class CommunicationService extends Service {
         if(user.equalsIgnoreCase(Constants.CLIENT)){
             discoverServices();
         }else{
-            //TODO 3
             // if pedestrian reaches the alert zone, then start network service if host is not created and send message. If not in the alert zone then stop sending messges.
             // Drive only sends if the pedestrian sends
             //alertZonelistener
             alertZone.setAlertZoneListener(new AlertZoneListener() {
                 @Override
                 public void onAlerZoneEntered(double t_p) {
-                    //TODO 6 start networkService and send t_p to all clients
                     if(!isHostCreated){
                         isHostCreated = true;
                         setupNetwork();
@@ -162,11 +146,10 @@ public class CommunicationService extends Service {
                     }
 
                     //host sends t_p
-
-
                     Message message_t_p = new Message();
                     message_t_p.description = String.valueOf(t_p);
 
+                    sentTime = System.currentTimeMillis();
                     network.sendToAllDevices(message_t_p, new SalutCallback() {
                         @Override
                         public void call() {
@@ -199,17 +182,15 @@ public class CommunicationService extends Service {
 
 
             if(network.isRunningAsHost){ //pedestrian
-                //TODO 9
-                // get t_c, t_p and v_c
                 String[] payload = newMessage.description.split("\\s+");
                 t_c = Double.parseDouble(payload[0]);
                 t_p = Double.parseDouble(payload[1]);
                 v_c = Double.parseDouble(payload[2]);
 
-                // TODO 10
-                //also calculate delay and pass it
+                receivedTime = System.currentTimeMillis();
+                t_delay = receivedTime-sentTime;
 
-                runAlertAlgorithm(t_c,t_p,v_c);
+                runAlertAlgorithm(t_c,t_p,v_c,t_delay);
 
             }else{ //vehicle
                 t_p = Double.parseDouble(newMessage.description);
@@ -226,26 +207,22 @@ public class CommunicationService extends Service {
                         Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
                     }
                 });
-
             }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
         }
     }
 
-    private void runAlertAlgorithm(Double tc,Double tp,Double vc) {
+    private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
         //TODO getUserContext
 
 //        case1:
-        if(vc > 0 && isMoving && getProbabolityOfCollistion() >= 0.9 ){
-
-            //TODO fire alert
+        if(vc > 0 && isMoving && getProbabolityOfCollistion(t_c,t_p,v_c,delay) >= 0.9 ){
             Log.d(TAG, "Alert must be fired");
             fireAlert();
 
         }else{
-
             Log.d(TAG, "Pedestrian is safe according to algorithm");
         }
 
@@ -257,7 +234,7 @@ public class CommunicationService extends Service {
     private void fireAlert() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
         LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-        View dialogView = inflater.inflate(R.layout.your_dialog_layout, null);
+        View dialogView = inflater.inflate(R.layout.dialog_layout, null);
         builder.setView(dialogView);
         final AlertDialog alert = builder.create();
         alert.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
@@ -272,8 +249,6 @@ public class CommunicationService extends Service {
                 @Override
                 public void call(SalutDevice salutDevice) {
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
-
-                    //send Data here i.e t_p TODO 7
                 }
             });
 
@@ -284,7 +259,6 @@ public class CommunicationService extends Service {
 
     private void discoverServices() {
         if (!network.isRunningAsHost && !network.isDiscovering) {
-            statusView.setText("Started Dsicovering");
             network.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {
@@ -321,11 +295,32 @@ public class CommunicationService extends Service {
         nm.cancel(R.string.service_started);
 
         //TODO stop all the communication related tasks 1.
+
+        if (network.isRunningAsHost) {
+            if (isHostCreated) {
+                network.stopNetworkService(true);
+                isHostCreated = false;
+            }
+        } else {
+            if(isRegisretedWithHost) {
+                network.unregisterClient(true);
+            }
+        }
     }
 
-    public double getProbabolityOfCollistion() {
-        //TODO 11
-        // calculations
-        return 0.9;
+    public double getProbabolityOfCollistion(double tc, double tp, double vc, long delay) {
+
+
+        //vr is used as vc as of now
+
+        double f = ((Constants.mew_k * Constants.mass * Constants.g) + ((Constants.row*Constants.a*Constants.cd*vc*vc)/2) + Constants.f0);
+        double d_skid = (Constants.mass*vc*vc*f)/2;
+
+        double t_skid = d_skid/vc;
+        double t_all = tc-tp-t_delay-t_skid;
+
+        LogNormalDistribution logNormalDistribution = new LogNormalDistribution();
+
+        return logNormalDistribution.cumulativeProbability(t_all);
     }
 }

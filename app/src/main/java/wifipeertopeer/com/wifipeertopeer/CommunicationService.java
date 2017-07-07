@@ -65,11 +65,15 @@ public class CommunicationService extends Service {
     private IntentFilter intentFilter;
 
     private RelativeLayout rLayout;
+
+    private AlertZone alertZone;
 ///////////////////////////////////////////////
 
 
     @Override
     public int onStartCommand(Intent intent,int flags, int startID){
+        AlertZone alertZone = new AlertZone();//initialize GPS as soon as possible
+
         nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Intent notificationIntent = new Intent(this,UserSelectionActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -94,6 +98,7 @@ public class CommunicationService extends Service {
     }
 
     private void establishCommunication(String user) {
+
 
         dataReceiver = new SalutDataReceiver((Activity) UserSelectionActivity.context, new SalutDataCallback() {
             @Override
@@ -125,6 +130,19 @@ public class CommunicationService extends Service {
             // if pedestrian reaches the alert zone, then start network service and send message. If not in the alert zone then stop sending messges.
             // Drive only sends if the pedestrian sends
             //alertZonelistener
+            alertZone.setAlertZoneListener(new AlertZoneListener() {
+                @Override
+                public void onAlerZoneEntered(double t_p) {
+                    //TODO 6 start networkService and send t_p to all clients
+                    setupNetwork(t_p);
+                }
+
+                @Override
+                public void onAlerZoneExited() {
+//                    TODO 5 maybe later on
+//                    do not send mesages
+                }
+            });
 
 
         }
@@ -134,13 +152,15 @@ public class CommunicationService extends Service {
 
 
 
-    private void setupNetwork() {
+    private void setupNetwork(double t_p) {
         if (!network.isRunningAsHost) {
             network.startNetworkService(new SalutDeviceCallback() {
                 @Override
                 public void call(SalutDevice salutDevice) {
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
                     isHostCreated = true;
+
+                    //send Data here i.e t_p TODO 7
                 }
             });
 
@@ -152,7 +172,6 @@ public class CommunicationService extends Service {
     private void discoverServices() {
         if (!network.isRunningAsHost && !network.isDiscovering) {
             statusView.setText("Started Dsicovering");
-            userView.setText("Driver");
             network.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {

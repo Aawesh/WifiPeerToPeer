@@ -11,13 +11,19 @@ import android.os.IBinder;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bluelinelabs.logansquare.LoganSquare;
 import com.peak.salut.Callbacks.SalutCallback;
 import com.peak.salut.Callbacks.SalutDataCallback;
 import com.peak.salut.Callbacks.SalutDeviceCallback;
@@ -26,6 +32,7 @@ import com.peak.salut.SalutDataReceiver;
 import com.peak.salut.SalutDevice;
 import com.peak.salut.SalutServiceData;
 
+import java.io.IOException;
 import java.util.Random;
 
 /**
@@ -36,6 +43,14 @@ public class CommunicationService extends Service {
 
     NotificationManager nm = null;
     int ONGOING_NOTIFICATION_ID = 0;
+
+    double t_p = 0.0; //distance to crossing
+    double t_c = 0.0; //time for pedestrian to reach the crossing
+    double v_c = 0.0; //speed of vehicle
+
+    boolean isMoving = false;
+
+
 
     ////////////////////////////////////////////////
     public static final String TAG = "SalutTestApp";
@@ -67,12 +82,17 @@ public class CommunicationService extends Service {
     private RelativeLayout rLayout;
 
     private AlertZone alertZone;
+    private DriverLocation driverLocation;
+
 ///////////////////////////////////////////////
 
 
     @Override
     public int onStartCommand(Intent intent,int flags, int startID){
+
+        //initialize location usage classes
         AlertZone alertZone = new AlertZone();//initialize GPS as soon as possible
+        driverLocation = new DriverLocation();
 
         nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Intent notificationIntent = new Intent(this,UserSelectionActivity.class);
@@ -104,6 +124,7 @@ public class CommunicationService extends Service {
             @Override
             public void onDataReceived(Object o) {
                 //TODO data received 2.
+                receiveMessage(o);
             }
         });
 
@@ -127,20 +148,40 @@ public class CommunicationService extends Service {
             discoverServices();
         }else{
             //TODO 3
-            // if pedestrian reaches the alert zone, then start network service and send message. If not in the alert zone then stop sending messges.
+            // if pedestrian reaches the alert zone, then start network service if host is not created and send message. If not in the alert zone then stop sending messges.
             // Drive only sends if the pedestrian sends
             //alertZonelistener
             alertZone.setAlertZoneListener(new AlertZoneListener() {
                 @Override
                 public void onAlerZoneEntered(double t_p) {
                     //TODO 6 start networkService and send t_p to all clients
-                    setupNetwork(t_p);
+                    if(!isHostCreated){
+                        isHostCreated = true;
+                        setupNetwork();
+                        Log.d(TAG, "Host created");
+                    }
+
+                    //host sends t_p
+
+
+                    Message message_t_p = new Message();
+                    message_t_p.description = String.valueOf(t_p);
+
+                    network.sendToAllDevices(message_t_p, new SalutCallback() {
+                        @Override
+                        public void call() {
+                            Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
+                        }
+                    });
+
                 }
 
                 @Override
                 public void onAlerZoneExited() {
+                    Log.d(TAG,"Pedestrian is outside of alert zone");
 //                    TODO 5 maybe later on
 //                    do not send mesages
+//                    maybe we can stop the host
                 }
             });
 
@@ -149,16 +190,88 @@ public class CommunicationService extends Service {
 
     }
 
+    private void receiveMessage(Object o) {
+        Log.d(TAG, "Received network data.");
+
+        try {
+            Message newMessage = LoganSquare.parse(o.toString(), Message.class);
+            Log.d(TAG, "Message received: " + newMessage.description);
 
 
+            if(network.isRunningAsHost){ //pedestrian
+                //TODO 9
+                // get t_c, t_p and v_c
+                String[] payload = newMessage.description.split("\\s+");
+                t_c = Double.parseDouble(payload[0]);
+                t_p = Double.parseDouble(payload[1]);
+                v_c = Double.parseDouble(payload[2]);
 
-    private void setupNetwork(double t_p) {
+                // TODO 10
+                //also calculate delay and pass it
+
+                runAlertAlgorithm(t_c,t_p,v_c);
+
+            }else{ //vehicle
+                t_p = Double.parseDouble(newMessage.description);
+                t_c = driverLocation.get_t_c();
+                v_c = driverLocation.get_v_c();
+
+                Message payload = new Message();
+                payload.description = String.valueOf(t_c) + " " + String.valueOf(t_p) + " " + String.valueOf(v_c);
+
+
+                MainActivity.network.sendToHost(payload, new SalutCallback() {
+                    @Override
+                    public void call() {
+                        Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
+                    }
+                });
+
+            }
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to parse network data.");
+        }
+    }
+
+    private void runAlertAlgorithm(Double tc,Double tp,Double vc) {
+
+        //TODO getUserContext
+
+//        case1:
+        if(vc > 0 && isMoving && getProbabolityOfCollistion() >= 0.9 ){
+
+            //TODO fire alert
+            Log.d(TAG, "Alert must be fired");
+            fireAlert();
+
+        }else{
+
+            Log.d(TAG, "Pedestrian is safe according to algorithm");
+        }
+
+
+//        case2:
+//        case3:
+    }
+
+    private void fireAlert() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
+        View dialogView = inflater.inflate(R.layout.your_dialog_layout, null);
+        builder.setView(dialogView);
+        final AlertDialog alert = builder.create();
+        alert.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+        alert.show();
+    }
+
+
+    private void setupNetwork() {
         if (!network.isRunningAsHost) {
             network.startNetworkService(new SalutDeviceCallback() {
                 @Override
                 public void call(SalutDevice salutDevice) {
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
-                    isHostCreated = true;
 
                     //send Data here i.e t_p TODO 7
                 }
@@ -208,5 +321,11 @@ public class CommunicationService extends Service {
         nm.cancel(R.string.service_started);
 
         //TODO stop all the communication related tasks 1.
+    }
+
+    public double getProbabolityOfCollistion() {
+        //TODO 11
+        // calculations
+        return 0.9;
     }
 }

@@ -34,20 +34,9 @@ public class AlertZone implements LocationListener {
     protected static final String TAG = "AlertZone";
     protected LocationManager locationManager;
 
-    protected GoogleApiClient mGoogleApiClient;
     AlertZoneListener listener;
 
-    private double mLatitude = 0.0;
-    private double mLongitude = 0.0;
-
-    private double crossingLatitude = 0.0;
-    private double crossingLongitude = 0.0;
-
     //all the units are in meter
-    private final double maximumWalkingSpeed = 1.34112;
-    private final double maximumRunningSpeed = 12.5171;
-    private final double maxAlertZoneDistanceFromCrossing = 7;
-
     Location crossingLocation;
     double d_p; //distance to crossing
     double t_p; //time for pedestrian to reach the crossing
@@ -56,11 +45,16 @@ public class AlertZone implements LocationListener {
     public AlertZone() {
 
         crossingLocation = new Location("crossingLocation");
-        crossingLocation.setLatitude(crossingLatitude);
-        crossingLocation.setLongitude(crossingLongitude);
+        crossingLocation.setLatitude(Constants.CROSSING_LATITUDE);
+        crossingLocation.setLongitude(Constants.CROSSING_LONGITUDE);
 
         listener = null;
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
+
+    }
+
+    public void setAlertZoneListener(AlertZoneListener listener) {
+        this.listener = listener;
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -72,11 +66,6 @@ public class AlertZone implements LocationListener {
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
-        //initialize locaiton manager and all TODO 4
-    }
-
-    public void setAlertZoneListener(AlertZoneListener listener) {
-        this.listener = listener;
     }
 
 
@@ -86,9 +75,22 @@ public class AlertZone implements LocationListener {
         if(location != null){
 
             d_p = location.distanceTo(crossingLocation);
+            UserSelectionActivity.infoview2.setText(String.valueOf(d_p));
+            Log.d(TAG,"ped to cross distance: " + d_p);
 
-            if(d_p <= maximumWalkingSpeed){ //pedestrian is in the alert zone
-                t_p = d_p / maximumWalkingSpeed;
+            if(d_p <= Constants.MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING){ //pedestrian is in the alert zone
+                double max_speed = 0.001; // if the user is still then set the minimum velocity so that we can specify that the user is not walking at all.
+                if(CommunicationService.isPedestrianWalking){
+                    max_speed = Constants.MAXIMUM_WALKING_SPEED;
+                    Log.d(TAG, "user is walking");
+                }else if(CommunicationService.isPedestrianRunning){
+                    max_speed = Constants.MAXIMUM_RUNNING_SPEED;
+                    Log.d(TAG, "user is running");
+                }
+                t_p = d_p / max_speed;
+
+                max_speed = Constants.MAXIMUM_WALKING_SPEED; //todo remove
+
                 listener.onAlerZoneEntered(t_p);
             }else{
                 listener.onAlerZoneExited();
@@ -108,6 +110,12 @@ public class AlertZone implements LocationListener {
 
     @Override
     public void onProviderDisabled(String provider) {
+
+    }
+
+    public void removeUpdates(){
+        locationManager.removeUpdates(this);
+        Log.d(TAG, "pedestrian location updates removed");
 
     }
 }

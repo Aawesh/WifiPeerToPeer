@@ -1,27 +1,14 @@
 package wifipeertopeer.com.wifipeertopeer;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.peak.salut.Callbacks.SalutDataCallback;
-import com.peak.salut.Salut;
-import com.peak.salut.SalutDataReceiver;
-import com.peak.salut.SalutServiceData;
 
 /**
  * Created by aawesh on 7/6/17.
@@ -31,6 +18,9 @@ public class UserSelectionActivity extends AppCompatActivity {
     Button walkingButton;
     Button drivingButton;
     Button exitButton;
+
+    static TextView infoview;
+    static TextView infoview2;
 
     static Context context;
     Intent intent;
@@ -48,6 +38,9 @@ public class UserSelectionActivity extends AppCompatActivity {
         walkingButton = (Button) findViewById(R.id.pedestrianButton);
         drivingButton = (Button) findViewById(R.id.driverButton);
         exitButton = (Button) findViewById(R.id.exitButton);
+
+        infoview = (TextView)findViewById(R.id.infoView);
+        infoview2 = (TextView)findViewById(R.id.infoView2);
 
         exitButton.setVisibility(View.GONE);
 
@@ -97,5 +90,10 @@ public class UserSelectionActivity extends AppCompatActivity {
         drivingButton.setVisibility(View.GONE);
 
         exitButton.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //do nothing
     }
 }

@@ -47,16 +47,21 @@ public final class Constants {
     public static final String HOST = "Pedestrian";
     public static final String CLIENT = "Driver";
 
-    public static final double CROSSINGLATITUDE = 44.3125065;
-    public static final double CROSSINGLONGITUDE = -96.7771053;
+    public static final double CROSSING_LATITUDE = 44.3132148;
+    public static final double CROSSING_LONGITUDE = -96.77637478;
 
-    static double f0 = 0.00; //TODO ask
     static double cd = 0.25;
     static double mew_k = 0.8;
     static double g = 9.8; //m/s2
     static double row = 1.23; //kg/m3
     static double mass = 1400.00; //kg
     static double a = 2.7; //m2
+
+
+    public static final double MAXIMUM_WALKING_SPEED = 1.34112; //m/s
+    public static final double MAXIMUM_RUNNING_SPEED = 12.5171; //m/s
+    public static final double MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING = 4; //m //TODO change to 7
+
 
     /**
      * The desired time between activity detections. Larger values result in fewer activity
@@ -70,10 +75,10 @@ public final class Constants {
      * List of DetectedActivity types that we monitor in this sample.
      */
     public static final int[] MONITORED_ACTIVITIES = {
-            DetectedActivity.STILL,
+            DetectedActivity.STILL,//0
             DetectedActivity.ON_FOOT,
-            DetectedActivity.WALKING,
-            DetectedActivity.RUNNING,
+            DetectedActivity.WALKING,//2
+            DetectedActivity.RUNNING,//3
             DetectedActivity.ON_BICYCLE,
             DetectedActivity.IN_VEHICLE,
             DetectedActivity.TILTING,

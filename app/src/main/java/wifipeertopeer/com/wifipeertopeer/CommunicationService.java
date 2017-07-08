@@ -1,6 +1,7 @@
 package wifipeertopeer.com.wifipeertopeer;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -50,8 +51,10 @@ public class CommunicationService extends Service {
     double t_c = 0.0; //time for pedestrian to reach the crossing
     double v_c = 0.0; //speed of vehicle
 
-    boolean isMoving = false;
-
+    static boolean isPedestrianMoving = false;
+    //more specific activity
+    static boolean isPedestrianWalking = false;
+    static boolean isPedestrianRunning = false;
 
 
     /////////////////////////////////////////////
@@ -66,10 +69,13 @@ public class CommunicationService extends Service {
 
     private AlertZone alertZone;
     private DriverLocation driverLocation;
+    public ActivityType activityType;
 
     public long sentTime = 0;
     public long receivedTime = 0;
     public long t_delay = 0;
+
+    public String current_user;
 
 ///////////////////////////////////////////////
 
@@ -77,9 +83,7 @@ public class CommunicationService extends Service {
     @Override
     public int onStartCommand(Intent intent,int flags, int startID){
 
-        //initialize location usage classes
-        AlertZone alertZone = new AlertZone();//initialize GPS as soon as possible
-        driverLocation = new DriverLocation();
+
 
         nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Intent notificationIntent = new Intent(this,UserSelectionActivity.class);
@@ -99,7 +103,8 @@ public class CommunicationService extends Service {
         startForeground(ONGOING_NOTIFICATION_ID, notification);
         Toast.makeText(getBaseContext(), "Service Started", Toast.LENGTH_SHORT).show();
 
-        establishCommunication(intent.getStringExtra("user"));
+        current_user = intent.getStringExtra("user");
+        establishCommunication(current_user);
 
         return START_STICKY;
     }
@@ -131,14 +136,23 @@ public class CommunicationService extends Service {
         });
 
         if(user.equalsIgnoreCase(Constants.CLIENT)){
+
+            driverLocation = new DriverLocation();
             discoverServices();
         }else{
+
+            alertZone = new AlertZone();//initialize GPS as soon as possible
+            activityType = new ActivityType(getApplicationContext()); //initialize activity as soon as possibl
+
+
             // if pedestrian reaches the alert zone, then start network service if host is not created and send message. If not in the alert zone then stop sending messges.
             // Drive only sends if the pedestrian sends
             //alertZonelistener
             alertZone.setAlertZoneListener(new AlertZoneListener() {
                 @Override
                 public void onAlerZoneEntered(double t_p) {
+                    Log.d(TAG,"Pedestrian is inside the alert zone");
+                    UserSelectionActivity.infoview.setText("inside alert zone");
                     if(!isHostCreated){
                         isHostCreated = true;
                         setupNetwork();
@@ -150,18 +164,23 @@ public class CommunicationService extends Service {
                     message_t_p.description = String.valueOf(t_p);
 
                     sentTime = System.currentTimeMillis();
-                    network.sendToAllDevices(message_t_p, new SalutCallback() {
-                        @Override
-                        public void call() {
-                            Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
-                        }
-                    });
+
+                    if(network.isRunningAsHost){
+                        network.sendToAllDevices(message_t_p, new SalutCallback() {
+                            @Override
+                            public void call() {
+                                Log.e(TAG, "Oh no! The data failed to send.");
+                            }
+                        });
+                    }
+
 
                 }
 
                 @Override
                 public void onAlerZoneExited() {
                     Log.d(TAG,"Pedestrian is outside of alert zone");
+                    UserSelectionActivity.infoview.setText("outside alert zone");
 //                    TODO 5 maybe later on
 //                    do not send mesages
 //                    maybe we can stop the host
@@ -188,25 +207,28 @@ public class CommunicationService extends Service {
                 v_c = Double.parseDouble(payload[2]);
 
                 receivedTime = System.currentTimeMillis();
-                t_delay = receivedTime-sentTime;
+                t_delay = (receivedTime-sentTime);
+                Log.d(TAG, "delay val======="+t_delay);
 
                 runAlertAlgorithm(t_c,t_p,v_c,t_delay);
 
             }else{ //vehicle
-                t_p = Double.parseDouble(newMessage.description);
-                t_c = driverLocation.get_t_c();
-                v_c = driverLocation.get_v_c();
+                if(current_user.equalsIgnoreCase(Constants.CLIENT)){
+                    t_p = Double.parseDouble(newMessage.description);
+                    t_c = driverLocation.get_t_c();
+                    v_c = driverLocation.get_v_c();
 
-                Message payload = new Message();
-                payload.description = String.valueOf(t_c) + " " + String.valueOf(t_p) + " " + String.valueOf(v_c);
+                    Message payload = new Message();
+                    payload.description = String.valueOf(t_c) + " " + String.valueOf(t_p) + " " + String.valueOf(v_c);
 
+                    network.sendToHost(payload, new SalutCallback() {
+                        @Override
+                        public void call() {
+                            Log.e(TAG, "Oh no! The data failed to send.");
+                        }
+                    });
+                }
 
-                MainActivity.network.sendToHost(payload, new SalutCallback() {
-                    @Override
-                    public void call() {
-                        Log.e(MainActivity.TAG, "Oh no! The data failed to send.");
-                    }
-                });
             }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
@@ -215,31 +237,26 @@ public class CommunicationService extends Service {
 
     private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
-        //TODO getUserContext
+        Log.d(TAG, "vehicle speed: "+vc);
+        Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
+        Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(t_c,t_p,v_c,delay));
 
-//        case1:
-        if(vc > 0 && isMoving && getProbabolityOfCollistion(t_c,t_p,v_c,delay) >= 0.9 ){
-            Log.d(TAG, "Alert must be fired");
-            fireAlert();
+        double timeGap = tp-tc;
 
+        if((tp-tc)<5){ // todo define  for now if time diff is >= 5 sec then it is considered safe.
+            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(t_c,t_p,v_c,delay) >= 0.9 ){
+                Log.d(TAG, "Alert must be fired");
+                fireAlert();
+            }else{
+                Log.d(TAG, "Pedestrian is safe according to algorithm");
+            }
         }else{
-            Log.d(TAG, "Pedestrian is safe according to algorithm");
+            Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
         }
-
-
-//        case2:
-//        case3:
     }
 
     private void fireAlert() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-        View dialogView = inflater.inflate(R.layout.dialog_layout, null);
-        builder.setView(dialogView);
-        final AlertDialog alert = builder.create();
-        alert.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        alert.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        alert.show();
+        Log.d(TAG, "Alert Fired");
     }
 
 
@@ -288,13 +305,44 @@ public class CommunicationService extends Service {
         return null;
     }
 
+    public double getProbabolityOfCollistion(double tc, double tp, double vc, long t_delay) {
+
+        //vr is used as vc as of now
+        //temp TODO remove
+        vc = 10;
+        tc = 40;
+        tp = 20;
+
+        double delay = Double.parseDouble(String.valueOf(t_delay))/1000;
+
+
+        double f = ((Constants.mew_k * Constants.mass * Constants.g) + ((Constants.row*Constants.a*Constants.cd*vc*vc)/2));
+        double d_skid = (Constants.mass*vc*vc*f)/2;
+
+
+        double t_skid = (d_skid/vc);
+        double t_all = (tc - tp - delay- t_skid);
+
+        Log.d(TAG,"t_delay: "+delay);
+        Log.d(TAG,"f = "+String.valueOf(f));
+        Log.d(TAG,"tc = "+String.valueOf(tc));
+        Log.d(TAG,"tp = "+String.valueOf(tp));
+        Log.d(TAG,"d_skid = " + String.valueOf(d_skid));
+        Log.d(TAG,"t_skid = " + String.valueOf(t_skid));
+        Log.d(TAG,"t_all = " + String.valueOf(t_all));
+
+
+
+        LogNormalDistribution logNormalDistribution = new LogNormalDistribution();
+
+        return logNormalDistribution.cumulativeProbability(t_all);
+    }
+
     @Override
     public void onDestroy(){
         super.onDestroy();
         stopForeground(false);
         nm.cancel(R.string.service_started);
-
-        //TODO stop all the communication related tasks 1.
 
         if (network.isRunningAsHost) {
             if (isHostCreated) {
@@ -306,21 +354,16 @@ public class CommunicationService extends Service {
                 network.unregisterClient(true);
             }
         }
+
+
+        if(current_user.equalsIgnoreCase(Constants.HOST)){
+            activityType.removeActivityUpdates();
+            alertZone.removeUpdates();
+
+        }else{
+            driverLocation.removeUpdates();
+        }
     }
 
-    public double getProbabolityOfCollistion(double tc, double tp, double vc, long delay) {
 
-
-        //vr is used as vc as of now
-
-        double f = ((Constants.mew_k * Constants.mass * Constants.g) + ((Constants.row*Constants.a*Constants.cd*vc*vc)/2) + Constants.f0);
-        double d_skid = (Constants.mass*vc*vc*f)/2;
-
-        double t_skid = d_skid/vc;
-        double t_all = tc-tp-t_delay-t_skid;
-
-        LogNormalDistribution logNormalDistribution = new LogNormalDistribution();
-
-        return logNormalDistribution.cumulativeProbability(t_all);
-    }
 }

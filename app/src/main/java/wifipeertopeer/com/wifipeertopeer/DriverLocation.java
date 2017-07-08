@@ -8,6 +8,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -18,14 +19,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 public class DriverLocation implements LocationListener {
 
     protected static final String TAG = "AlertZone";
-    protected LocationManager locationManager;
-
-    protected GoogleApiClient mGoogleApiClient;
-    AlertZoneListener listener;
-
-    private double mLatitude = 0.0;
-    private double mLongitude = 0.0;
-
+    public LocationManager locationManager;
 
     Location crossingLocation;
     double d_c = 0.0; //distance to crossing
@@ -36,8 +30,8 @@ public class DriverLocation implements LocationListener {
     public DriverLocation() {
 
         crossingLocation = new Location("crossingLocation");
-        crossingLocation.setLatitude(Constants.CROSSINGLATITUDE);
-        crossingLocation.setLongitude(Constants.CROSSINGLONGITUDE);
+        crossingLocation.setLatitude(Constants.CROSSING_LATITUDE);
+        crossingLocation.setLongitude(Constants.CROSSING_LONGITUDE);
 
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -59,11 +53,15 @@ public class DriverLocation implements LocationListener {
     public void onLocationChanged(Location location) {
         if(location != null){
             d_c = location.distanceTo(crossingLocation);
-
             v_c = location.getSpeed();
-
             t_c = d_c/v_c;
+
+
+            Log.d(TAG, "distance from vehicle to crossig: "+d_c);
+            Log.d(TAG, "velocity of a vehile: "+v_c);
+            Log.d(TAG, "time for vehicle to reach the crossing: "+t_c);
         }
+
     }
 
     @Override
@@ -87,5 +85,10 @@ public class DriverLocation implements LocationListener {
 
     public Double get_v_c(){
         return v_c;
+    }
+
+    public void removeUpdates(){
+        locationManager.removeUpdates(this);
+        Log.d(TAG, "driver location updates removed");
     }
 }

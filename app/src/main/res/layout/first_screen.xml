@@ -42,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="18dp"
-        android:text="distance"
+        android:text=""
         android:layout_below="@+id/exitButton"
         android:layout_alignStart="@+id/pedestrianButton"
         android:layout_marginTop="27dp" />
@@ -51,7 +51,7 @@
         android:id="@+id/infoView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="where"
+        android:text=""
         android:layout_alignTop="@+id/infoView"
         android:layout_alignStart="@+id/infoView"
         android:layout_marginTop="47dp" />

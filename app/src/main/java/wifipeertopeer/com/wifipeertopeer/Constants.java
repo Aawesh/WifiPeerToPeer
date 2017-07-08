@@ -60,7 +60,7 @@ public final class Constants {
 
     public static final double MAXIMUM_WALKING_SPEED = 1.34112; //m/s
     public static final double MAXIMUM_RUNNING_SPEED = 12.5171; //m/s
-    public static final double MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING = 4; //m //TODO change to 7
+    public static final double MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING = 15; //m //TODO change to 7
 
 
     /**

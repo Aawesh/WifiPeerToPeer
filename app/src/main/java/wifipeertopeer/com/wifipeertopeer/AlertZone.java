@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +25,16 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.ActivityRecognition;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 /**
  * Created by aawesh on 6/18/17.
@@ -45,8 +56,11 @@ public class AlertZone implements LocationListener {
     public AlertZone() {
 
         crossingLocation = new Location("crossingLocation");
-        crossingLocation.setLatitude(Constants.CROSSING_LATITUDE);
-        crossingLocation.setLongitude(Constants.CROSSING_LONGITUDE);
+
+        String[] loc = readFromFile().split("\\s+");
+
+        crossingLocation.setLatitude(Double.parseDouble(loc[0]));
+        crossingLocation.setLongitude(Double.parseDouble(loc[1]));
 
         listener = null;
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
@@ -75,7 +89,7 @@ public class AlertZone implements LocationListener {
         if(location != null){
 
             d_p = location.distanceTo(crossingLocation);
-            UserSelectionActivity.infoview2.setText(String.valueOf(d_p));
+//            UserSelectionActivity.infoview2.setText(String.valueOf(d_p));
             Log.d(TAG,"ped to cross distance: " + d_p);
 
             if(d_p <= Constants.MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING){ //pedestrian is in the alert zone
@@ -83,13 +97,19 @@ public class AlertZone implements LocationListener {
                 if(CommunicationService.isPedestrianWalking){
                     max_speed = Constants.MAXIMUM_WALKING_SPEED;
                     Log.d(TAG, "user is walking");
+                    UserSelectionActivity.infoview2.setText("walking");
                 }else if(CommunicationService.isPedestrianRunning){
                     max_speed = Constants.MAXIMUM_RUNNING_SPEED;
                     Log.d(TAG, "user is running");
+                    UserSelectionActivity.infoview2.setText("running");
+                }else if(!CommunicationService.isPedestrianMoving){
+                    UserSelectionActivity.infoview2.setText("still");
                 }
-                t_p = d_p / max_speed;
 
                 max_speed = Constants.MAXIMUM_WALKING_SPEED; //todo remove
+
+                t_p = d_p / max_speed;
+
 
                 listener.onAlerZoneEntered(t_p);
             }else{
@@ -117,5 +137,29 @@ public class AlertZone implements LocationListener {
         locationManager.removeUpdates(this);
         Log.d(TAG, "pedestrian location updates removed");
 
+    }
+
+    public String readFromFile(){
+        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+
+        File file = new File(path,"location_data.txt");
+
+        StringBuilder text = new StringBuilder();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+            }
+            br.close();
+        }
+        catch (IOException e) {
+            //You'll need to add proper error handling here
+            Log.e("read failure",e.toString());
+        }
+
+        return text.toString();
     }
 }

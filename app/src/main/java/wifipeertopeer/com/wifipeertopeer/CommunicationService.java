@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
@@ -83,7 +84,7 @@ public class CommunicationService extends Service {
     @Override
     public int onStartCommand(Intent intent,int flags, int startID){
 
-
+        current_user = intent.getStringExtra("user");
 
         nm = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         Intent notificationIntent = new Intent(this,UserSelectionActivity.class);
@@ -96,14 +97,13 @@ public class CommunicationService extends Service {
                 .setContentIntent(pendingIntent)
                 .setTicker("Notification")
                 //.setWhen(System.currentTimeMillis())
-                .setSmallIcon(R.drawable.car);
+                .setSmallIcon(current_user.equalsIgnoreCase(Constants.CLIENT)?R.drawable.car:R.drawable.walking100);
         Notification notification = builder.build();
         nm.notify(R.string.service_started,notification);
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
         Toast.makeText(getBaseContext(), "Service Started", Toast.LENGTH_SHORT).show();
 
-        current_user = intent.getStringExtra("user");
         establishCommunication(current_user);
 
         return START_STICKY;
@@ -181,6 +181,14 @@ public class CommunicationService extends Service {
                 public void onAlerZoneExited() {
                     Log.d(TAG,"Pedestrian is outside of alert zone");
                     UserSelectionActivity.infoview.setText("outside alert zone");
+
+                    //todo hack
+                    if(!isHostCreated){
+                        isHostCreated = true;
+                        setupNetwork();
+                        Log.d(TAG, "Host created");
+                    }
+
 //                    TODO 5 maybe later on
 //                    do not send mesages
 //                    maybe we can stop the host
@@ -208,7 +216,6 @@ public class CommunicationService extends Service {
 
                 receivedTime = System.currentTimeMillis();
                 t_delay = (receivedTime-sentTime);
-                Log.d(TAG, "delay val======="+t_delay);
 
                 runAlertAlgorithm(t_c,t_p,v_c,t_delay);
 
@@ -241,22 +248,36 @@ public class CommunicationService extends Service {
         Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
         Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(t_c,t_p,v_c,delay));
 
-        double timeGap = tp-tc;
-
-        if((tp-tc)<5){ // todo define  for now if time diff is >= 5 sec then it is considered safe.
+        if((tp-tc) >= 5){
+            Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
+        }
+        else if(tc > tp){
             if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(t_c,t_p,v_c,delay) >= 0.9 ){
                 Log.d(TAG, "Alert must be fired");
                 fireAlert();
             }else{
                 Log.d(TAG, "Pedestrian is safe according to algorithm");
             }
-        }else{
-            Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
         }
     }
 
     private void fireAlert() {
         Log.d(TAG, "Alert Fired");
+        System.out.println("reached here = ");
+        android.support.v7.app.NotificationCompat.Builder builder = new android.support.v7.app.NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.warning)
+//                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_poi))
+                .setColor(getResources().getColor(R.color.colorPrimary))
+                .setContentTitle("Be careful a vehicle is appeaching.")
+//                .setContentIntent(notificationPendingIntent)
+//                .setContentText(String.format(getString(R.string.notification), viewObject.getTitle()))
+                .setDefaults(Notification.DEFAULT_ALL)
+//                .setStyle(bigText)
+                .setPriority(Notification.PRIORITY_HIGH);
+
+        builder.setAutoCancel(true);
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(5, builder.build());
     }
 
 
@@ -279,7 +300,8 @@ public class CommunicationService extends Service {
             network.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {
-                    Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_LONG).show();
+                    //todo uncomment
+                    //Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_LONG).show();
 
                     //for now registered with the first host. Don't know what happens of there are multipe host
                     network.registerWithHost(network.foundDevices.get(0), new SalutCallback() {
@@ -317,7 +339,7 @@ public class CommunicationService extends Service {
 
 
         double f = ((Constants.mew_k * Constants.mass * Constants.g) + ((Constants.row*Constants.a*Constants.cd*vc*vc)/2));
-        double d_skid = (Constants.mass*vc*vc*f)/2;
+        double d_skid = (Constants.mass*vc*vc)/(f*2);
 
 
         double t_skid = (d_skid/vc);

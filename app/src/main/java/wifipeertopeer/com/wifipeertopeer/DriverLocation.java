@@ -7,10 +7,16 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * Created by aawesh on 7/7/17.
@@ -30,8 +36,14 @@ public class DriverLocation implements LocationListener {
     public DriverLocation() {
 
         crossingLocation = new Location("crossingLocation");
-        crossingLocation.setLatitude(Constants.CROSSING_LATITUDE);
-        crossingLocation.setLongitude(Constants.CROSSING_LONGITUDE);
+
+        String[] loc = readFromFile().split("\\s+");
+
+        System.out.println("loc[0] = " + loc[0]);
+        System.out.println("loc[1] = " + loc[1]);
+
+        crossingLocation.setLatitude(Double.parseDouble(loc[0]));
+        crossingLocation.setLongitude(Double.parseDouble(loc[1]));
 
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -54,8 +66,8 @@ public class DriverLocation implements LocationListener {
         if(location != null){
             d_c = location.distanceTo(crossingLocation);
             v_c = location.getSpeed();
-            t_c = d_c/v_c;
 
+            t_c = d_c/v_c;
 
             Log.d(TAG, "distance from vehicle to crossig: "+d_c);
             Log.d(TAG, "velocity of a vehile: "+v_c);
@@ -85,6 +97,30 @@ public class DriverLocation implements LocationListener {
 
     public Double get_v_c(){
         return v_c;
+    }
+
+    public String readFromFile(){
+        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+
+        File file = new File(path,"location_data.txt");
+
+        StringBuilder text = new StringBuilder();
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+            }
+            br.close();
+        }
+        catch (IOException e) {
+            //You'll need to add proper error handling here
+            Log.e("read failure",e.toString());
+        }
+
+        return text.toString();
     }
 
     public void removeUpdates(){

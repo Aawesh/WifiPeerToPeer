@@ -56,5 +56,14 @@
         android:layout_alignStart="@+id/infoView"
         android:layout_marginTop="47dp" />
 
+    <TextView
+        android:id="@+id/infoView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/infoView2"
+        android:layout_marginTop="27dp"
+        android:layout_toEndOf="@+id/infoView2"
+        android:text="" />
+
 
 </RelativeLayout>

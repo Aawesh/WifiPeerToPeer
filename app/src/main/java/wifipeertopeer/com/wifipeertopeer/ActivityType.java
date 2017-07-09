@@ -40,7 +40,7 @@ public class ActivityType implements ConnectionCallbacks, OnConnectionFailedList
 
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(context)
-//                .enableAutoManage(context, this) todo manual management
+//                .enableAutoManage(context, this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(ActivityRecognition.API)
@@ -118,8 +118,7 @@ public class ActivityType implements ConnectionCallbacks, OnConnectionFailedList
             ).show();
 
             if(requestingUpdates){
-                //TODO stop updates
-                //removeActivityUpdates();
+//                removeActivityUpdates(); TODO
 
             }else{
                 Log.d(TAG, "updates removed");

@@ -83,20 +83,28 @@ public class DetectedActivitiesIntentService extends IntentService {
             Log.d(TAG, "running_confidence: "+runningConfidence);
         }
 
-        if(walkingConfidence >= 30 || runningConfidence >= 30){
-            CommunicationService.isPedestrianMoving = true;
-            Log.i(TAG, "moving: "+ CommunicationService.isPedestrianMoving );
-        }
+
 
         if(stillConfidence < 30){
             if(walkingConfidence >= 30 && runningConfidence < 30){
                 CommunicationService.isPedestrianWalking = true;
-                Log.i(TAG, "moving: "+ CommunicationService.isPedestrianWalking );
+                CommunicationService.isPedestrianMoving = true;
+
+                CommunicationService.isPedestrianRunning = false;
+                Log.i(TAG, "walking: "+ CommunicationService.isPedestrianWalking );
 
             }else if(runningConfidence >= 30 && walkingConfidence <30){
                 CommunicationService.isPedestrianRunning = true;
-                Log.i(TAG, "moving: "+ CommunicationService.isPedestrianRunning );
+                CommunicationService.isPedestrianMoving = true;
+
+                CommunicationService.isPedestrianWalking = false;
+                Log.i(TAG, "running: "+ CommunicationService.isPedestrianRunning );
             }
-        }
+        }else{
+            CommunicationService.isPedestrianMoving = false ;
+            CommunicationService.isPedestrianWalking = false ;
+            CommunicationService.isPedestrianRunning = false ;
+            Log.i(TAG, "moving: "+ CommunicationService.isPedestrianMoving );
+    }
     }
 }

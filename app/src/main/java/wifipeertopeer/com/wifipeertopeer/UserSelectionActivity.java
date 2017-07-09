@@ -25,6 +25,7 @@ public class UserSelectionActivity extends AppCompatActivity {
 
     static TextView infoview;
     static TextView infoview2;
+    static TextView infoview3;
 
     static Context context;
     Intent intent;
@@ -45,6 +46,7 @@ public class UserSelectionActivity extends AppCompatActivity {
 
         infoview = (TextView)findViewById(R.id.infoView);
         infoview2 = (TextView)findViewById(R.id.infoView2);
+        infoview3 = (TextView)findViewById(R.id.infoView3);
 
         exitButton.setVisibility(View.GONE);
 

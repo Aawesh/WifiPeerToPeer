@@ -244,26 +244,32 @@ public class CommunicationService extends Service {
 
     private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
+        //todo remove hardcoded values
+        /*tc = 10;
+        tp = 5.21;
+        vc=7;*/
+
         Log.d(TAG, "vehicle speed: "+vc);
         Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
-        Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(t_c,t_p,v_c,delay));
+        Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 
         if((tp-tc) >= 5){
             Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
         }
         else if(tc > tp){
-            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(t_c,t_p,v_c,delay) >= 0.9 ){
+            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(tc,tp,vc,delay) >= 0.9 ){
                 Log.d(TAG, "Alert must be fired");
+                UserSelectionActivity.infoview3.setText("You are not safe. Be careful");
                 fireAlert();
             }else{
                 Log.d(TAG, "Pedestrian is safe according to algorithm");
+                UserSelectionActivity.infoview3.setText("Safe acc to algorithm");
             }
         }
     }
 
     private void fireAlert() {
         Log.d(TAG, "Alert Fired");
-        System.out.println("reached here = ");
         android.support.v7.app.NotificationCompat.Builder builder = new android.support.v7.app.NotificationCompat.Builder(this);
         builder.setSmallIcon(R.drawable.warning)
 //                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_poi))
@@ -300,7 +306,7 @@ public class CommunicationService extends Service {
             network.discoverNetworkServices(new SalutCallback() {
                 @Override
                 public void call() {
-                    //todo uncomment
+                    //todo uncomment hack
                     //Toast.makeText(getApplicationContext(), "Device: " + network.foundDevices.get(0).instanceName + " found. ", Toast.LENGTH_LONG).show();
 
                     //for now registered with the first host. Don't know what happens of there are multipe host
@@ -329,12 +335,6 @@ public class CommunicationService extends Service {
 
     public double getProbabolityOfCollistion(double tc, double tp, double vc, long t_delay) {
 
-        //vr is used as vc as of now
-        //temp TODO remove
-        vc = 10;
-        tc = 40;
-        tp = 20;
-
         double delay = Double.parseDouble(String.valueOf(t_delay))/1000;
 
 
@@ -356,8 +356,12 @@ public class CommunicationService extends Service {
 
 
         LogNormalDistribution logNormalDistribution = new LogNormalDistribution();
+        Double probablityOfCollision = logNormalDistribution.cumulativeProbability(t_all);
 
-        return logNormalDistribution.cumulativeProbability(t_all);
+        Log.d(TAG,String.valueOf(probablityOfCollision));
+        UserSelectionActivity.infoview3.setText(String.valueOf(probablityOfCollision));
+
+        return probablityOfCollision;
     }
 
     @Override

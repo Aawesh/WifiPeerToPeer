@@ -32,6 +32,8 @@ public class DriverLocation implements LocationListener {
     double t_c = 0.0; //time for pedestrian to reach the crossing
     double v_c = 0.0; //speed of vehicle
 
+    float speed;
+
 
     public DriverLocation() {
 
@@ -47,7 +49,6 @@ public class DriverLocation implements LocationListener {
 
         locationManager = (LocationManager) UserSelectionActivity.context.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -57,7 +58,6 @@ public class DriverLocation implements LocationListener {
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
-        //initialize locaiton manager and all TODO 4
     }
 
 
@@ -65,7 +65,8 @@ public class DriverLocation implements LocationListener {
     public void onLocationChanged(Location location) {
         if(location != null){
             d_c = location.distanceTo(crossingLocation);
-            v_c = location.getSpeed();
+            speed = location.getSpeed();
+            v_c = speed == 0.0?0.001:speed;
 
             t_c = d_c/v_c;
 

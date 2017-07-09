@@ -70,7 +70,6 @@ public class AlertZone implements LocationListener {
     public void setAlertZoneListener(AlertZoneListener listener) {
         this.listener = listener;
         if (ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(UserSelectionActivity.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -105,8 +104,6 @@ public class AlertZone implements LocationListener {
                 }else if(!CommunicationService.isPedestrianMoving){
                     UserSelectionActivity.infoview2.setText("still");
                 }
-
-                max_speed = Constants.MAXIMUM_WALKING_SPEED; //todo remove
 
                 t_p = d_p / max_speed;
 

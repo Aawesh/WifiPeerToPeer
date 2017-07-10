@@ -9,6 +9,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -36,7 +37,10 @@ import com.peak.salut.SalutServiceData;
 
 import org.apache.commons.math3.distribution.LogNormalDistribution;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Random;
 
 /**
@@ -77,6 +81,15 @@ public class CommunicationService extends Service {
     public long t_delay = 0;
 
     public String current_user;
+    public String alertSignal;
+
+
+    static int N = 5; //alert count default is 5
+    static double P = 0.9; //probability threshold default 0.9
+
+    static int alertCount = 0;
+
+
 
 ///////////////////////////////////////////////
 
@@ -161,7 +174,7 @@ public class CommunicationService extends Service {
 
                     //host sends t_p
                     Message message_t_p = new Message();
-                    message_t_p.description = String.valueOf(t_p);
+                    message_t_p.description = String.valueOf(t_p)+" "+"no"; //t_p and no alert from here
 
                     sentTime = System.currentTimeMillis();
 
@@ -209,10 +222,10 @@ public class CommunicationService extends Service {
 
 
             if(network.isRunningAsHost){ //pedestrian
-                String[] payload = newMessage.description.split("\\s+");
-                t_c = Double.parseDouble(payload[0]);
-                t_p = Double.parseDouble(payload[1]);
-                v_c = Double.parseDouble(payload[2]);
+                String[] pedestrianPayload = newMessage.description.split("\\s+");
+                t_c = Double.parseDouble(pedestrianPayload[0]);
+                t_p = Double.parseDouble(pedestrianPayload[1]);
+                v_c = Double.parseDouble(pedestrianPayload[2]);
 
                 receivedTime = System.currentTimeMillis();
                 t_delay = (receivedTime-sentTime);
@@ -221,9 +234,22 @@ public class CommunicationService extends Service {
 
             }else{ //vehicle
                 if(current_user.equalsIgnoreCase(Constants.CLIENT)){
-                    t_p = Double.parseDouble(newMessage.description);
+                    //check if we need t apert or not
+
+                    String[] vehiclePayload = newMessage.description.split("\\s+");
+
+                    t_p = Double.parseDouble(vehiclePayload[0]);
+                    alertSignal= vehiclePayload[1];
+
                     t_c = driverLocation.get_t_c();
                     v_c = driverLocation.get_v_c();
+
+                    //vehicle is alerted here
+                    //save the data here
+                    if(alertSignal.equalsIgnoreCase("yes")){
+                        fireAlert();
+                        writeToFile(v_c + "," + t_c + "," + driverLocation.getSpeed() + "," + N +"," + driverLocation.getLatitude() + "," + driverLocation.getLongitude() + "\n");
+                    }
 
                     Message payload = new Message();
                     payload.description = String.valueOf(t_c) + " " + String.valueOf(t_p) + " " + String.valueOf(v_c);
@@ -245,25 +271,54 @@ public class CommunicationService extends Service {
     private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
         //todo remove hardcoded values
-        /*tc = 10;
+      /*  tc = 10;
         tp = 5.21;
-        vc=7;*/
-
+        vc=7;
+*/
         Log.d(TAG, "vehicle speed: "+vc);
         Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
         Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 
         if((tp-tc) >= 5){
             Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
+//            alertCount = 0;
         }
         else if(tc > tp){
-            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(tc,tp,vc,delay) >= 0.9 ){
+            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(tc,tp,vc,delay) >= P ){
                 Log.d(TAG, "Alert must be fired");
                 UserSelectionActivity.infoview3.setText("You are not safe. Be careful");
                 fireAlert();
+                alertCount ++;
+
+                if(alertCount == 1){
+                    writeToFile(t_c + "," + t_p + "," + N + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
+                }
+
+                if(alertCount == N){ //otherwise dont send anything becuase we are already sending data from alert zone entered
+                    //host sends t_p
+                    Message message_t_p = new Message();
+                    message_t_p.description = String.valueOf(t_p)+" "+"yes"; //t_p and yes alert from here
+
+                    sentTime = System.currentTimeMillis();
+
+                    if(network.isRunningAsHost){
+                        network.sendToAllDevices(message_t_p, new SalutCallback() {
+                            @Override
+                            public void call() {
+                                Log.e(TAG, "Oh no! The data failed to send.");
+                            }
+                        });
+                    }
+                     isPedestrianMoving = false; //todo remove later, this must happen automatically. we assume that pedestrian stops after N times warning
+
+                    //alertCount = 0; //reset it to 0 because once it reaches the N we want to notify the driver again of pedestrian still ignores the message
+                }
+
             }else{
                 Log.d(TAG, "Pedestrian is safe according to algorithm");
                 UserSelectionActivity.infoview3.setText("Safe acc to algorithm");
+
+                //alertCount = 0;
             }
         }
     }
@@ -388,6 +443,39 @@ public class CommunicationService extends Service {
 
         }else{
             driverLocation.removeUpdates();
+        }
+    }
+
+
+    public void writeToFile(String data) {
+
+        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+        // Create the folder.
+        File folder = new File(path);
+        if (!folder.exists()) {
+            // Make it, if it doesn't exit
+            folder.mkdirs();
+        }
+
+        // Create the file.
+        File file = new File(folder, "alertEngineData.txt");
+
+        try {
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileOutputStream fOut = new FileOutputStream(file,true);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.append(data);
+
+
+            System.out.println(" Successful ");
+            myOutWriter.close();
+
+            fOut.flush();
+            fOut.close();
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
         }
     }
 

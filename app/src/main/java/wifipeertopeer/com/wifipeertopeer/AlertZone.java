@@ -49,6 +49,7 @@ public class AlertZone implements LocationListener {
 
     //all the units are in meter
     Location crossingLocation;
+    Location loc;
     double d_p; //distance to crossing
     double t_p; //time for pedestrian to reach the crossing
 
@@ -87,6 +88,7 @@ public class AlertZone implements LocationListener {
         //calculate the distance between
         if(location != null){
 
+            loc = location;
             d_p = location.distanceTo(crossingLocation);
 //            UserSelectionActivity.infoview2.setText(String.valueOf(d_p));
             Log.d(TAG,"ped to cross distance: " + d_p);
@@ -158,5 +160,14 @@ public class AlertZone implements LocationListener {
         }
 
         return text.toString();
+    }
+
+
+    public double getLatitude(){
+        return loc.getLatitude();
+    }
+
+    public double getLongitude(){
+        return loc.getLongitude();
     }
 }

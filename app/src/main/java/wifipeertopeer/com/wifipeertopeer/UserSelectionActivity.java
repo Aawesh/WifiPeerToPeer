@@ -10,25 +10,36 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.peak.salut.Salut;
 
 /**
  * Created by aawesh on 7/6/17.
  */
 
-public class UserSelectionActivity extends AppCompatActivity {
+public class UserSelectionActivity extends AppCompatActivity implements View.OnClickListener  {
     Button walkingButton;
     Button drivingButton;
     Button exitButton;
+    Button setButton;
 
     static TextView infoview;
     static TextView infoview2;
     static TextView infoview3;
 
+    EditText n;
+    EditText p;
+
     static Context context;
     Intent intent;
+
+    RelativeLayout relativeLayout;
 
 
     @Override
@@ -40,52 +51,74 @@ public class UserSelectionActivity extends AppCompatActivity {
         context = this;
         intent = new Intent(this,CommunicationService.class);
 
+        relativeLayout = (RelativeLayout)findViewById(R.id.mainLayout);
+
         walkingButton = (Button) findViewById(R.id.pedestrianButton);
         drivingButton = (Button) findViewById(R.id.driverButton);
         exitButton = (Button) findViewById(R.id.exitButton);
+        setButton = (Button) findViewById(R.id.setButton);
 
         infoview = (TextView)findViewById(R.id.infoView);
         infoview2 = (TextView)findViewById(R.id.infoView2);
         infoview3 = (TextView)findViewById(R.id.infoView3);
 
+        walkingButton.setOnClickListener(this);
+        drivingButton.setOnClickListener(this);
+        exitButton.setOnClickListener(this);
+        setButton.setOnClickListener(this);
+        relativeLayout.setOnClickListener(this);
+
+        n = (EditText)findViewById(R.id.alertCount);
+        p = (EditText)findViewById(R.id.probability);
+
         exitButton.setVisibility(View.GONE);
+        setButton.setVisibility(View.GONE);
+
+        n.setVisibility(View.GONE);
+        p.setVisibility(View.GONE);
+    }
 
 
-        walkingButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                arrangeViews();
+    @Override
+    public void onClick(View v) {
 
-                intent.putExtra("user",Constants.HOST);
-                startCommunicationService();
+        InputMethodManager imm = (InputMethodManager)getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+        if (!Salut.isWiFiEnabled(getApplicationContext())) {
+            Toast.makeText(getApplicationContext(), "Please enable WiFi first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (v.getId() == R.id.pedestrianButton) {
+            arrangePedestrianViews();
+            intent.putExtra("user",Constants.HOST);
+            startCommunicationService();
+        } else if (v.getId() == R.id.driverButton) {
+            arrangeDriverViews();
+            intent.putExtra("user",Constants.CLIENT);
+            startCommunicationService();
+        }else if(v.getId() == R.id.exitButton){
+            Toast.makeText(getBaseContext(), "Service Stopped", Toast.LENGTH_LONG).show();
+
+            stopService(intent);
+
+            walkingButton.setVisibility(View.VISIBLE);
+            drivingButton.setVisibility(View.VISIBLE);
+            exitButton.setVisibility(View.GONE);
+        }else if(v.getId() == R.id.setButton){
+            String N = n.getText().toString();
+            String P  = p.getText().toString();
+
+            if(!N.equals("") && !P.equals("")){
+                CommunicationService.N = Integer.parseInt(N);
+                CommunicationService.P = Double.parseDouble(P)/100;
+                CommunicationService.alertCount = 0;
+            }else{
+                Toast.makeText(getBaseContext(),"Null input(s)",Toast.LENGTH_LONG).show();
             }
-        });
-
-        drivingButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                arrangeViews();
-
-                intent.putExtra("user",Constants.CLIENT);
-                startCommunicationService();
-
-
-            }
-        });
-
-
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getBaseContext(), "Service Stopped", Toast.LENGTH_LONG).show();
-
-                stopService(intent);
-
-                walkingButton.setVisibility(View.VISIBLE);
-                drivingButton.setVisibility(View.VISIBLE);
-                exitButton.setVisibility(View.GONE);
-
-            }
-        });
-
+        }
     }
 
 
@@ -94,12 +127,24 @@ public class UserSelectionActivity extends AppCompatActivity {
         startService(intent);
     }
 
-    public void arrangeViews(){
+    public void arrangePedestrianViews(){
+        walkingButton.setVisibility(View.GONE);
+        drivingButton.setVisibility(View.GONE);
+
+        exitButton.setVisibility(View.VISIBLE);
+        setButton.setVisibility(View.VISIBLE);
+
+        n.setVisibility(View.VISIBLE);
+        p.setVisibility(View.VISIBLE);
+    }
+
+    public void arrangeDriverViews(){
         walkingButton.setVisibility(View.GONE);
         drivingButton.setVisibility(View.GONE);
 
         exitButton.setVisibility(View.VISIBLE);
     }
+
 
     @Override
     public void onBackPressed() {

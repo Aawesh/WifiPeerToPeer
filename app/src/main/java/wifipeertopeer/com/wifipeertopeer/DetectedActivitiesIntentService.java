@@ -86,14 +86,14 @@ public class DetectedActivitiesIntentService extends IntentService {
 
 
         if(stillConfidence < 30){
-            if(walkingConfidence >= 30 && runningConfidence < 30){
+            if(walkingConfidence >= 25 && runningConfidence < 25){
                 CommunicationService.isPedestrianWalking = true;
                 CommunicationService.isPedestrianMoving = true;
 
                 CommunicationService.isPedestrianRunning = false;
                 Log.i(TAG, "walking: "+ CommunicationService.isPedestrianWalking );
 
-            }else if(runningConfidence >= 30 && walkingConfidence <30){
+            }else if(runningConfidence >= 25 && walkingConfidence <25){
                 CommunicationService.isPedestrianRunning = true;
                 CommunicationService.isPedestrianMoving = true;
 

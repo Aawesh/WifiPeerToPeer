@@ -32,6 +32,8 @@ public class DriverLocation implements LocationListener {
     double t_c = 0.0; //time for pedestrian to reach the crossing
     double v_c = 0.0; //speed of vehicle
 
+    Location loc;
+
     float speed;
 
 
@@ -64,6 +66,8 @@ public class DriverLocation implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         if(location != null){
+            loc = location;
+
             d_c = location.distanceTo(crossingLocation);
             speed = location.getSpeed();
             v_c = speed == 0.0?0.001:speed;
@@ -127,5 +131,17 @@ public class DriverLocation implements LocationListener {
     public void removeUpdates(){
         locationManager.removeUpdates(this);
         Log.d(TAG, "driver location updates removed");
+    }
+
+    public double getLatitude(){
+        return loc.getLatitude();
+    }
+
+    public double getLongitude(){
+        return loc.getLongitude();
+    }
+
+    public float getSpeed(){
+        return speed;
     }
 }

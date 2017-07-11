@@ -99,16 +99,11 @@ public class AlertZone implements LocationListener {
                     max_speed = Constants.MAXIMUM_WALKING_SPEED;
                     Log.d(TAG, "user is walking");
                     UserSelectionActivity.infoview2.setText("walking");
-                }else if(CommunicationService.isPedestrianRunning){
-                    max_speed = Constants.MAXIMUM_RUNNING_SPEED;
-                    Log.d(TAG, "user is running");
-                    UserSelectionActivity.infoview2.setText("running");
                 }else if(!CommunicationService.isPedestrianMoving){
                     UserSelectionActivity.infoview2.setText("still");
                 }
 
                 t_p = d_p / max_speed;
-
 
                 listener.onAlerZoneEntered(t_p);
             }else{

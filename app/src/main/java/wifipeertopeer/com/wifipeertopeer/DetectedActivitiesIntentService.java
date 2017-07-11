@@ -33,7 +33,6 @@ import java.util.ArrayList;
 public class DetectedActivitiesIntentService extends IntentService {
 
     public int walkingConfidence = 0;
-    public int runningConfidence = 0;
     public int stillConfidence = 0;
 
     protected static final String TAG = "DetectedActivitiesIS";
@@ -74,36 +73,23 @@ public class DetectedActivitiesIntentService extends IntentService {
                 stillConfidence = da.getConfidence();
             }else if(da.getType() == Constants.MONITORED_ACTIVITIES[2]) { //walking
                 walkingConfidence = da.getConfidence();
-            }else if(da.getType() == Constants.MONITORED_ACTIVITIES[3]){ //running
-                runningConfidence = da.getConfidence();
             }
 
             Log.d(TAG, "still_confidence: "+stillConfidence);
             Log.d(TAG, "walking_confidence: "+walkingConfidence);
-            Log.d(TAG, "running_confidence: "+runningConfidence);
         }
 
 
 
         if(stillConfidence < 30){
-            if(walkingConfidence >= 25 && runningConfidence < 25){
+            if(walkingConfidence >= 25){
                 CommunicationService.isPedestrianWalking = true;
                 CommunicationService.isPedestrianMoving = true;
-
-                CommunicationService.isPedestrianRunning = false;
                 Log.i(TAG, "walking: "+ CommunicationService.isPedestrianWalking );
-
-            }else if(runningConfidence >= 25 && walkingConfidence <25){
-                CommunicationService.isPedestrianRunning = true;
-                CommunicationService.isPedestrianMoving = true;
-
-                CommunicationService.isPedestrianWalking = false;
-                Log.i(TAG, "running: "+ CommunicationService.isPedestrianRunning );
             }
         }else{
             CommunicationService.isPedestrianMoving = false ;
             CommunicationService.isPedestrianWalking = false ;
-            CommunicationService.isPedestrianRunning = false ;
             Log.i(TAG, "moving: "+ CommunicationService.isPedestrianMoving );
     }
     }

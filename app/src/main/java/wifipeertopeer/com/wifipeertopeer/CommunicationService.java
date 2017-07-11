@@ -89,6 +89,9 @@ public class CommunicationService extends Service {
 
     static int alertCount = 0;
 
+    double firstLatitude = 0.0;
+    double firstLongitude= 0.0;
+
 
 
 ///////////////////////////////////////////////
@@ -230,6 +233,7 @@ public class CommunicationService extends Service {
                 receivedTime = System.currentTimeMillis();
                 t_delay = (receivedTime-sentTime);
 
+                UserSelectionActivity.infoview.setText("tp = "+t_p+" vc = "+t_c+" vc = "+v_c);
                 runAlertAlgorithm(t_c,t_p,v_c,t_delay);
 
             }else{ //vehicle
@@ -271,11 +275,10 @@ public class CommunicationService extends Service {
     private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
         //todo remove hardcoded values
-      /*  tc = 10;
+   /*     tc = 10;
         tp = 5.21;
         vc=7;
-*/
-        Log.d(TAG, "vehicle speed: "+vc);
+*/        Log.d(TAG, "vehicle speed: "+vc);
         Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
         Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 
@@ -291,7 +294,8 @@ public class CommunicationService extends Service {
                 alertCount ++;
 
                 if(alertCount == 1){
-                    writeToFile(t_c + "," + t_p + "," + N + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
+                    firstLatitude = alertZone.getLatitude();
+                    firstLongitude = alertZone.getLongitude();
                 }
 
                 if(alertCount == N){ //otherwise dont send anything becuase we are already sending data from alert zone entered
@@ -310,6 +314,8 @@ public class CommunicationService extends Service {
                         });
                     }
                      isPedestrianMoving = false; //todo remove later, this must happen automatically. we assume that pedestrian stops after N times warning
+
+                    writeToFile(t_c + "," + t_p + "," + N + "," + firstLatitude + "," + firstLongitude + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
 
                     //alertCount = 0; //reset it to 0 because once it reaches the N we want to notify the driver again of pedestrian still ignores the message
                 }

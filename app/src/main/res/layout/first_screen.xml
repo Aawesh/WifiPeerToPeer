@@ -70,7 +70,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="110dp"
         android:ems="6"
-        android:text="N"
+        android:text="1"
         android:inputType="phone"
         android:layout_marginTop="27dp"
         android:layout_marginStart="30dp"
@@ -83,7 +83,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="160dp"
         android:ems="6"
-        android:text="P"
+        android:text="90"
         android:inputType="phone"
         android:layout_alignBaseline="@+id/alertCount"
         android:layout_alignBottom="@+id/alertCount"
@@ -98,7 +98,7 @@
         android:layout_toStartOf="@+id/driverButton"
         android:text="Set" />
 
-    <Switch
+    <ToggleButton
         android:id="@+id/walkingButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

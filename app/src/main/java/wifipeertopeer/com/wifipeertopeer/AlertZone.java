@@ -96,6 +96,7 @@ public class AlertZone implements LocationListener {
 
             if(d_p <= Constants.MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING){ //pedestrian is in the alert zone
                 double max_speed = 0.001; // if the user is still then set the minimum velocity so that we can specify that the user is not walking at all.
+                System.out.println("======" + String.valueOf(CommunicationService.isPedestrianWalking));
                 if(CommunicationService.isPedestrianWalking){
                     max_speed = Constants.MAXIMUM_WALKING_SPEED;
                     Log.d(TAG, "user is walking");

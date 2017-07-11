@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -25,13 +26,13 @@ import com.peak.salut.Salut;
  * Created by aawesh on 7/6/17.
  */
 
-public class UserSelectionActivity extends AppCompatActivity implements View.OnClickListener,CompoundButton.OnCheckedChangeListener {
+public class UserSelectionActivity extends AppCompatActivity implements View.OnClickListener {
     Button walkingButton;
     Button drivingButton;
     Button exitButton;
     Button setButton;
 
-    ToggleButton toggle;
+    static ToggleButton toggle;
 
     static TextView infoview;
     static TextView infoview2;
@@ -79,9 +80,24 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
 
         exitButton.setVisibility(View.GONE);
         setButton.setVisibility(View.GONE);
+        toggle.setVisibility(View.GONE);
+
 
         n.setVisibility(View.GONE);
         p.setVisibility(View.GONE);
+
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    // The toggle is enabled
+                    CommunicationService.isPedestrianWalking = true;
+                } else {
+                    // The toggle is disabled
+                    CommunicationService.isPedestrianWalking = false;
+                }
+            }
+        });
     }
 
 
@@ -113,6 +129,15 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
             walkingButton.setVisibility(View.VISIBLE);
             drivingButton.setVisibility(View.VISIBLE);
             exitButton.setVisibility(View.GONE);
+            toggle.setVisibility(View.GONE);
+
+            infoview.setVisibility(View.GONE);
+            infoview2.setVisibility(View.GONE);
+            infoview3.setVisibility(View.GONE);
+
+            n.setVisibility(View.GONE);
+            p.setVisibility(View.GONE);
+            setButton.setVisibility(View.GONE);
         }else if(v.getId() == R.id.setButton){
             String N = n.getText().toString();
             String P  = p.getText().toString();
@@ -142,6 +167,9 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
 
         n.setVisibility(View.VISIBLE);
         p.setVisibility(View.VISIBLE);
+
+        toggle.setVisibility(View.VISIBLE);
+
     }
 
     public void arrangeDriverViews(){
@@ -155,18 +183,5 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
     @Override
     public void onBackPressed() {
         //do nothing
-    }
-
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        if(buttonView.getId() == R.id.walkingButton){
-            if (isChecked) {
-                // The toggle is enabled
-                CommunicationService.isPedestrianWalking = true;
-            } else {
-                // The toggle is disabled
-                CommunicationService.isPedestrianWalking = false;
-            }
-        }
     }
 }

@@ -82,7 +82,7 @@ public class CommunicationService extends Service {
     public String alertSignal;
 
 
-    static int N = 5; //alert count default is 5
+    static int N = 1; //alert count default is 5
     static double P = 0.9; //probability threshold default 0.9
 
     static int alertCount = 0;
@@ -166,7 +166,7 @@ public class CommunicationService extends Service {
                 @Override
                 public void onAlerZoneEntered(double t_p) {
                     Log.d(TAG,"Pedestrian is inside the alert zone");
-                    UserSelectionActivity.infoview.setText("inside alert zone");
+                    //UserSelectionActivity.infoview.setText("inside alert zone");
                     if(!isHostCreated){
                         isHostCreated = true;
                         setupNetwork();
@@ -194,7 +194,7 @@ public class CommunicationService extends Service {
                 @Override
                 public void onAlerZoneExited() {
                     Log.d(TAG,"Pedestrian is outside of alert zone");
-                    UserSelectionActivity.infoview.setText("outside alert zone");
+//                    UserSelectionActivity.infoview.setText("outside alert zone");
 
                     //todo hack
                     if(!isHostCreated){
@@ -312,6 +312,7 @@ public class CommunicationService extends Service {
                         });
                     }
                      isPedestrianWalking = false;
+                    UserSelectionActivity.toggle.toggle();
 
                     writeToFile(t_c + "," + t_p + "," + N + "," + firstLatitude + "," + firstLongitude + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
 

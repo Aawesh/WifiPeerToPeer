@@ -233,7 +233,7 @@ public class CommunicationService extends Service {
                 receivedTime = System.currentTimeMillis();
                 t_delay = (receivedTime-sentTime);
 
-                UserSelectionActivity.infoview.setText("tp = "+t_p+" vc = "+t_c+" vc = "+v_c);
+                UserSelectionActivity.infoview.setText("tp = "+t_p+" tc = "+t_c+" vc = "+v_c);
                 runAlertAlgorithm(t_c,t_p,v_c,t_delay);
 
             }else{ //vehicle
@@ -275,10 +275,11 @@ public class CommunicationService extends Service {
     private void runAlertAlgorithm(double tc, double tp, double vc, long delay) {
 
         //todo remove hardcoded values
-   /*     tc = 10;
+        /*tc = 10;
         tp = 5.21;
         vc=7;
-*/        Log.d(TAG, "vehicle speed: "+vc);
+*/
+        Log.d(TAG, "vehicle speed: "+vc);
         Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
         Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 

@@ -59,7 +59,7 @@ public class DriverLocation implements LocationListener {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 0, this);
     }
 
 

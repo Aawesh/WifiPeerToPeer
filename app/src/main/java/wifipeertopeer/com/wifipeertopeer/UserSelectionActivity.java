@@ -12,10 +12,12 @@ import android.support.v7.app.NotificationCompat;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.peak.salut.Salut;
 
@@ -23,11 +25,13 @@ import com.peak.salut.Salut;
  * Created by aawesh on 7/6/17.
  */
 
-public class UserSelectionActivity extends AppCompatActivity implements View.OnClickListener  {
+public class UserSelectionActivity extends AppCompatActivity implements View.OnClickListener,CompoundButton.OnCheckedChangeListener {
     Button walkingButton;
     Button drivingButton;
     Button exitButton;
     Button setButton;
+
+    ToggleButton toggle;
 
     static TextView infoview;
     static TextView infoview2;
@@ -57,6 +61,8 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
         drivingButton = (Button) findViewById(R.id.driverButton);
         exitButton = (Button) findViewById(R.id.exitButton);
         setButton = (Button) findViewById(R.id.setButton);
+
+         toggle= (ToggleButton) findViewById(R.id.walkingButton);
 
         infoview = (TextView)findViewById(R.id.infoView);
         infoview2 = (TextView)findViewById(R.id.infoView2);
@@ -149,5 +155,18 @@ public class UserSelectionActivity extends AppCompatActivity implements View.OnC
     @Override
     public void onBackPressed() {
         //do nothing
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if(buttonView.getId() == R.id.walkingButton){
+            if (isChecked) {
+                // The toggle is enabled
+                CommunicationService.isPedestrianWalking = true;
+            } else {
+                // The toggle is disabled
+                CommunicationService.isPedestrianWalking = false;
+            }
+        }
     }
 }

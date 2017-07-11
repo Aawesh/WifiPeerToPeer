@@ -98,5 +98,13 @@
         android:layout_toStartOf="@+id/driverButton"
         android:text="Set" />
 
+    <Switch
+        android:id="@+id/walkingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/alertCount"
+        android:layout_below="@+id/setButton"
+        android:layout_marginTop="39dp"
+        android:text="Walking  " />
 
 </RelativeLayout>

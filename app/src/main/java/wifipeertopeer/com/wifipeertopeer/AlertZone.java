@@ -92,6 +92,7 @@ public class AlertZone implements LocationListener {
             d_p = location.distanceTo(crossingLocation);
 //            UserSelectionActivity.infoview2.setText(String.valueOf(d_p));
             Log.d(TAG,"ped to cross distance: " + d_p);
+            UserSelectionActivity.infoview.setText("distance: "+d_p);
 
             if(d_p <= Constants.MAX_ALERT_ZONE_DISTANCE_FROM_CROSSING){ //pedestrian is in the alert zone
                 double max_speed = 0.001; // if the user is still then set the minimum velocity so that we can specify that the user is not walking at all.
@@ -99,7 +100,7 @@ public class AlertZone implements LocationListener {
                     max_speed = Constants.MAXIMUM_WALKING_SPEED;
                     Log.d(TAG, "user is walking");
                     UserSelectionActivity.infoview2.setText("walking");
-                }else if(!CommunicationService.isPedestrianMoving){
+                }else if(!CommunicationService.isPedestrianWalking){
                     UserSelectionActivity.infoview2.setText("still");
                 }
 

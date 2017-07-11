@@ -34,8 +34,8 @@ public class ActivityType implements ConnectionCallbacks, OnConnectionFailedList
     // Constructor where listener events are ignored
     public ActivityType(Context context) {
         this.context = context;
-        buildGoogleApiClient();
-        mGoogleApiClient.connect();
+//        buildGoogleApiClient();
+//        mGoogleApiClient.connect();
     }
 
     protected synchronized void buildGoogleApiClient() {

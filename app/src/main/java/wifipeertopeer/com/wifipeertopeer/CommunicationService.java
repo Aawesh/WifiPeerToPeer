@@ -56,10 +56,8 @@ public class CommunicationService extends Service {
     double t_c = 0.0; //time for pedestrian to reach the crossing
     double v_c = 0.0; //speed of vehicle
 
-    static boolean isPedestrianMoving = false;
     //more specific activity
     static boolean isPedestrianWalking = false;
-    static boolean isPedestrianRunning = false;
 
 
     /////////////////////////////////////////////
@@ -74,7 +72,7 @@ public class CommunicationService extends Service {
 
     private AlertZone alertZone;
     private DriverLocation driverLocation;
-    public ActivityType activityType;
+//    public ActivityType activityType;
 
     public long sentTime = 0;
     public long receivedTime = 0;
@@ -158,7 +156,7 @@ public class CommunicationService extends Service {
         }else{
 
             alertZone = new AlertZone();//initialize GPS as soon as possible
-            activityType = new ActivityType(getApplicationContext()); //initialize activity as soon as possibl
+//            activityType = new ActivityType(getApplicationContext()); //initialize activity as soon as possibl
 
 
             // if pedestrian reaches the alert zone, then start network service if host is not created and send message. If not in the alert zone then stop sending messges.
@@ -280,7 +278,6 @@ public class CommunicationService extends Service {
         vc=7;
 */
         Log.d(TAG, "vehicle speed: "+vc);
-        Log.d(TAG, "isPedestrianMoving: "+isPedestrianMoving);
         Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 
         if((tp-tc) >= 5){
@@ -288,7 +285,7 @@ public class CommunicationService extends Service {
 //            alertCount = 0;
         }
         else if(tc > tp){
-            if(vc > 0 && isPedestrianMoving && getProbabolityOfCollistion(tc,tp,vc,delay) >= P ){
+            if(vc > 0 && isPedestrianWalking && getProbabolityOfCollistion(tc,tp,vc,delay) >= P ){
                 Log.d(TAG, "Alert must be fired");
                 UserSelectionActivity.infoview3.setText("You are not safe. Be careful");
                 fireAlert();
@@ -299,7 +296,7 @@ public class CommunicationService extends Service {
                     firstLongitude = alertZone.getLongitude();
                 }
 
-                if(alertCount == N){ //otherwise dont send anything becuase we are already sending data from alert zone entered
+                if(alertCount == N){ //otherwise dont send anything because we are already sending data from alert zone entered
                     //host sends t_p
                     Message message_t_p = new Message();
                     message_t_p.description = String.valueOf(t_p)+" "+"yes"; //t_p and yes alert from here
@@ -314,7 +311,7 @@ public class CommunicationService extends Service {
                             }
                         });
                     }
-                     isPedestrianMoving = false; //todo remove later, this must happen automatically. we assume that pedestrian stops after N times warning
+                     isPedestrianWalking = false;
 
                     writeToFile(t_c + "," + t_p + "," + N + "," + firstLatitude + "," + firstLongitude + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
 
@@ -445,7 +442,7 @@ public class CommunicationService extends Service {
 
 
         if(current_user.equalsIgnoreCase(Constants.HOST)){
-            activityType.removeActivityUpdates();
+//            activityType.removeActivityUpdates();
             alertZone.removeUpdates();
 
         }else{

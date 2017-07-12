@@ -82,8 +82,8 @@ public class CommunicationService extends Service {
     public String alertSignal;
 
 
-    static int N = 1; //alert count default is 5
-    static double P = 0.9; //probability threshold default 0.9
+    static int N = 3; //alert count default is 5
+    static double P = 0.8; //probability threshold default 0.9
 
     static int alertCount = 0;
 
@@ -145,7 +145,7 @@ public class CommunicationService extends Service {
             public void call() {
                 // wiFiFailureDiag.show();
                 // OR
-                Log.e(TAG, "Sorry, but this device does not support WiFi Direct.");
+//                Log.e(TAG, "Sorry, but this device does not support WiFi Direct.");
             }
         });
 
@@ -165,12 +165,12 @@ public class CommunicationService extends Service {
             alertZone.setAlertZoneListener(new AlertZoneListener() {
                 @Override
                 public void onAlerZoneEntered(double t_p) {
-                    Log.d(TAG,"Pedestrian is inside the alert zone");
+//                    Log.d(TAG,"Pedestrian is inside the alert zone");
                     //UserSelectionActivity.infoview.setText("inside alert zone");
                     if(!isHostCreated){
                         isHostCreated = true;
                         setupNetwork();
-                        Log.d(TAG, "Host created");
+//                        Log.d(TAG, "Host created");
                     }
 
                     //host sends t_p
@@ -183,7 +183,7 @@ public class CommunicationService extends Service {
                         network.sendToAllDevices(message_t_p, new SalutCallback() {
                             @Override
                             public void call() {
-                                Log.e(TAG, "Oh no! The data failed to send.");
+//                                Log.e(TAG, "Oh no! The data failed to send.");
                             }
                         });
                     }
@@ -193,14 +193,14 @@ public class CommunicationService extends Service {
 
                 @Override
                 public void onAlerZoneExited() {
-                    Log.d(TAG,"Pedestrian is outside of alert zone");
+//                    Log.d(TAG,"Pedestrian is outside of alert zone");
 //                    UserSelectionActivity.infoview.setText("outside alert zone");
 
                     //todo hack
                     if(!isHostCreated){
                         isHostCreated = true;
                         setupNetwork();
-                        Log.d(TAG, "Host created");
+//                        Log.d(TAG, "Host created");
                     }
 
 //                    TODO 5 maybe later on
@@ -215,11 +215,11 @@ public class CommunicationService extends Service {
     }
 
     private void receiveMessage(Object o) {
-        Log.d(TAG, "Received network data.");
+//        Log.d(TAG, "Received network data.");
 
         try {
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
-            Log.d(TAG, "Message received: " + newMessage.description);
+//            Log.d(TAG, "Message received: " + newMessage.description);
 
 
             if(network.isRunningAsHost){ //pedestrian
@@ -250,7 +250,7 @@ public class CommunicationService extends Service {
                     //save the data here
                     if(alertSignal.equalsIgnoreCase("yes")){
                         fireAlert();
-                        writeToFile(v_c + "," + t_c + "," + driverLocation.getSpeed() + "," + N +"," + driverLocation.getLatitude() + "," + driverLocation.getLongitude() + "\n");
+                        writeToFile(v_c + "," + t_c + "," + driverLocation.getSpeed() + "," + N +"," + P + "," + driverLocation.getLatitude() + "," + driverLocation.getLongitude() + "\n");
                     }
 
                     Message payload = new Message();
@@ -259,14 +259,14 @@ public class CommunicationService extends Service {
                     network.sendToHost(payload, new SalutCallback() {
                         @Override
                         public void call() {
-                            Log.e(TAG, "Oh no! The data failed to send.");
+//                            Log.e(TAG, "Oh no! The data failed to send.");
                         }
                     });
                 }
 
             }
         } catch (IOException ex) {
-            Log.e(TAG, "Failed to parse network data.");
+//            Log.e(TAG, "Failed to parse network data.");
         }
     }
 
@@ -277,16 +277,17 @@ public class CommunicationService extends Service {
         tp = 5.21;
         vc=7;
 */
-        Log.d(TAG, "vehicle speed: "+vc);
-        Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
+//        Log.d(TAG, "vehicle speed: "+vc);
+//        Log.d(TAG, "cumulative probability: "+getProbabolityOfCollistion(tc,tp,vc,delay));
 
         if((tp-tc) >= 5){
-            Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
+//            Log.d(TAG, "All the vehicles pass before the pedestrian reach the crossing");
+            UserSelectionActivity.infoview3.setText("Vehicle will pass");
 //            alertCount = 0;
         }
         else if(tc > tp){
-            if(vc > 0 && isPedestrianWalking && getProbabolityOfCollistion(tc,tp,vc,delay) >= P ){
-                Log.d(TAG, "Alert must be fired");
+            if(vc > 0.001 && isPedestrianWalking && getProbabolityOfCollistion(tc,tp,vc,delay) >= P ){
+//                Log.d(TAG, "Alert must be fired");
                 UserSelectionActivity.infoview3.setText("You are not safe. Be careful");
                 fireAlert();
                 alertCount ++;
@@ -307,20 +308,20 @@ public class CommunicationService extends Service {
                         network.sendToAllDevices(message_t_p, new SalutCallback() {
                             @Override
                             public void call() {
-                                Log.e(TAG, "Oh no! The data failed to send.");
+//                                Log.e(TAG, "Oh no! The data failed to send.");
                             }
                         });
                     }
                      isPedestrianWalking = false;
                     UserSelectionActivity.toggle.toggle();
 
-                    writeToFile(t_c + "," + t_p + "," + N + "," + firstLatitude + "," + firstLongitude + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
+                    writeToFile(t_c + "," + t_p + "," + P + "," + firstLatitude + "," + firstLongitude + "," + alertZone.getLatitude() + "," + alertZone.getLongitude() + "\n");
 
                     //alertCount = 0; //reset it to 0 because once it reaches the N we want to notify the driver again of pedestrian still ignores the message
                 }
 
             }else{
-                Log.d(TAG, "Pedestrian is safe according to algorithm");
+//                Log.d(TAG, "Pedestrian is safe according to algorithm");
                 UserSelectionActivity.infoview3.setText("Safe acc to algorithm");
 
                 //alertCount = 0;
@@ -329,7 +330,7 @@ public class CommunicationService extends Service {
     }
 
     private void fireAlert() {
-        Log.d(TAG, "Alert Fired");
+//        Log.d(TAG, "Alert Fired");
         android.support.v7.app.NotificationCompat.Builder builder = new android.support.v7.app.NotificationCompat.Builder(this);
         builder.setSmallIcon(R.drawable.warning)
 //                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_poi))
@@ -374,12 +375,12 @@ public class CommunicationService extends Service {
                         @Override
                         public void call() {
                             isRegisretedWithHost = true;
-                            Log.d(TAG, "We're now registered.");
+//                            Log.d(TAG, "We're now registered.");
                         }
                     }, new SalutCallback() {
                         @Override
                         public void call() {
-                            Log.d(TAG, "We failed to register.");
+//                            Log.d(TAG, "We failed to register.");
                         }
                     });
                 }
@@ -405,20 +406,20 @@ public class CommunicationService extends Service {
         double t_skid = (d_skid/vc);
         double t_all = (tc - tp - delay- t_skid);
 
-        Log.d(TAG,"t_delay: "+delay);
+    /*    Log.d(TAG,"t_delay: "+delay);
         Log.d(TAG,"f = "+String.valueOf(f));
         Log.d(TAG,"tc = "+String.valueOf(tc));
         Log.d(TAG,"tp = "+String.valueOf(tp));
         Log.d(TAG,"d_skid = " + String.valueOf(d_skid));
         Log.d(TAG,"t_skid = " + String.valueOf(t_skid));
-        Log.d(TAG,"t_all = " + String.valueOf(t_all));
+        Log.d(TAG,"t_all = " + String.valueOf(t_all));*/
 
 
 
         LogNormalDistribution logNormalDistribution = new LogNormalDistribution();
         Double probablityOfCollision = logNormalDistribution.cumulativeProbability(t_all);
 
-        Log.d(TAG,String.valueOf(probablityOfCollision));
+//        Log.d(TAG,String.valueOf(probablityOfCollision));
         UserSelectionActivity.infoview3.setText(String.valueOf(probablityOfCollision));
 
         return probablityOfCollision;
@@ -480,7 +481,7 @@ public class CommunicationService extends Service {
             fOut.flush();
             fOut.close();
         } catch (IOException e) {
-            Log.e("Exception", "File write failed: " + e.toString());
+//            Log.e("Exception", "File write failed: " + e.toString());
         }
     }
 

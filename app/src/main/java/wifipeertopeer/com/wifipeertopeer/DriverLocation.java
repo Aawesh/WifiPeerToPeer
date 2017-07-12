@@ -43,9 +43,6 @@ public class DriverLocation implements LocationListener {
 
         String[] loc = readFromFile().split("\\s+");
 
-        System.out.println("loc[0] = " + loc[0]);
-        System.out.println("loc[1] = " + loc[1]);
-
         crossingLocation.setLatitude(Double.parseDouble(loc[0]));
         crossingLocation.setLongitude(Double.parseDouble(loc[1]));
 
@@ -74,9 +71,9 @@ public class DriverLocation implements LocationListener {
 
             t_c = d_c/v_c;
 
-            Log.d(TAG, "distance from vehicle to crossig: "+d_c);
+        /*    Log.d(TAG, "distance from vehicle to crossig: "+d_c);
             Log.d(TAG, "velocity of a vehile: "+v_c);
-            Log.d(TAG, "time for vehicle to reach the crossing: "+t_c);
+            Log.d(TAG, "time for vehicle to reach the crossing: "+t_c);*/
         }
 
     }
@@ -130,7 +127,7 @@ public class DriverLocation implements LocationListener {
 
     public void removeUpdates(){
         locationManager.removeUpdates(this);
-        Log.d(TAG, "driver location updates removed");
+//        Log.d(TAG, "driver location updates removed");
     }
 
     public double getLatitude(){

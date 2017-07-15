@@ -67,6 +67,11 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
 
     private RelativeLayout rLayout;
 
+    public static TextView sentText;
+    public static TextView receivedText;
+
+    static boolean flag = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -97,6 +102,9 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         sentCountView = (TextView) findViewById(R.id.sentView);
         receivedCountView = (TextView) findViewById(R.id.receivedView);
 
+        sentText = (TextView) findViewById(R.id.sent);
+        receivedText = (TextView) findViewById(R.id.received);
+
         speedView = (EditText)findViewById(R.id.speed_editText);
         packetSizeView = (EditText)findViewById(R.id.packetSize_editText);
         noOfPacketView = (EditText)findViewById(R.id.noOfPacket_editText);
@@ -109,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         rLayout.setOnClickListener(this);
 
         disableButton(sendingButton);
-        disableButton(resetingButton);
+        //disableButton(resetingButton);
 
 
         //handle wifi
@@ -154,6 +162,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                     Toast.makeText(getApplicationContext(), "Device: " + salutDevice.instanceName + " connected.", Toast.LENGTH_LONG).show();
                     isHostCreated = true;
                     enableButton(sendingButton);
+                    receivedText.setVisibility(View.GONE);
+                    receivedCountView.setVisibility(View.GONE);
                 }
             });
 
@@ -187,6 +197,9 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
                             Log.d(TAG, "We're now registered.");
                             statusView.setText("Registered with host: " + network.foundDevices.get(0).deviceName);
                             enableButton(sendingButton);
+                            sendingButton.setText("Receive");
+                            sentText.setVisibility(View.GONE);
+                            sentCountView.setVisibility(View.GONE);
                         }
                     }, new SalutCallback() {
                         @Override
@@ -228,8 +241,10 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
             Message newMessage = LoganSquare.parse(o.toString(), Message.class);
             Log.d(TAG, newMessage.description.substring(0,2));  //See you on the other side!
 
-            receivedCount ++;
-            receivedCountView.setText(String.valueOf(receivedCount));
+            if(flag == false){
+                receivedCount ++;
+                receivedCountView.setText(String.valueOf(receivedCount));
+            }
         } catch (IOException ex) {
             Log.e(TAG, "Failed to parse network data.");
         }
@@ -259,7 +274,8 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     }
 
     private void send() {
-        disableButton(resetingButton);
+        flag = false;
+//        disableButton(resetingButton);
         Log.d(TAG, "Sending packets");
 
 
@@ -290,18 +306,22 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
     }
 
     public static void updateCountandViews(){
-        sentCount ++;
-        sentCountView.setText(String.valueOf(sentCount));
+        if(flag == false){
+            sentCount ++;
+            sentCountView.setText(String.valueOf(sentCount));
+        }
+
     }
 
     public void saveAndReset(){
+        flag = true;
 
         enableButton(MainActivity.sendingButton);
 
         String currentDateTimeString = DateFormat.getDateTimeInstance().format(new Date());
 
         String data = currentDateTimeString + ";" + user + ";" + speed  + ";" + noOfPacket + ";" + packetSize + ";" + sentCount + ";"
-                + receivedCount + ";" + (receivedCount/sentCount)*100 + "\n";
+                + receivedCount + ";" + "\n";
 
         writeToFile(data);
 
@@ -311,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements SalutDataCallback
         sentCountView.setText("0");
         receivedCountView.setText("0");
 
-        disableButton(resetingButton);
+        //disableButton(resetingButton);
     }
 
 

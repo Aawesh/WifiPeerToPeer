@@ -60,7 +60,7 @@ public class CustomBroadcastReceiver extends BroadcastReceiver {
                 if(++count == MainActivity.noOfPacket) {
                     timer.cancel();
                     Log.d(MainActivity.TAG, "All packets sent successfully");
-                    MainActivity.enableButton(MainActivity.resetingButton);
+                    //MainActivity.enableButton(MainActivity.resetingButton);
                 }
             }
         };

@@ -16,24 +16,42 @@
         android:layout_alignStart="@+id/textView"
         android:layout_marginTop="57dp" />
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="location = null"
-        android:layout_marginTop="211dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="87dp" />
-
     <Button
         android:id="@+id/stop_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Stop"
-        android:layout_alignBottom="@+id/textView"
+        android:layout_below="@+id/start_btn"
+        android:layout_alignStart="@+id/start_btn" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/stop_btn"
+        android:layout_alignStart="@+id/start_btn"
+        android:layout_marginTop="50px"
+        android:ems="6"/>
+
+    <Button
+        android:id="@+id/capture_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Capture"
+        android:layout_below="@+id/editText"
         android:layout_alignStart="@+id/start_btn"
         android:layout_marginBottom="55dp" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="location = null"
+        android:layout_below="@+id/capture_btn"
+        android:layout_marginTop="280dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="87dp" />
 
     <TextView
         android:id="@+id/speed"
@@ -42,6 +60,15 @@
         android:text="speed = 0"
         android:layout_marginTop="43dp"
         android:layout_below="@+id/textView"
+        android:layout_alignStart="@+id/textView" />
+
+    <TextView
+        android:id="@+id/distance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="distance = 0"
+        android:layout_marginTop="43dp"
+        android:layout_below="@+id/speed"
         android:layout_alignStart="@+id/textView" />
 
 </RelativeLayout>

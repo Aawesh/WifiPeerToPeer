@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -19,13 +20,17 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
@@ -34,20 +39,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     private LocationManager locationManager;
 
-    private double speed = 0.0;
-
-
     boolean once = true;
 
     String filename;
     private Button start_btn;
     private Button stop_btn;
-    private TextView textView,speedView;
+    private Button capture_btn;
+    private TextView textView,speedView,distanceView;
     private RelativeLayout rLayout;
 
+    private EditText speedInput;
 
-    double latitude;
-    double longitude;
+    private Location alertZoneLocation;
+    private double cLat = 44.313357;
+    private double cLong = -96.784856;
+//    private double cLat = 44.313081;
+//    private double cLong = -96.776430;
+
+    private double mLat,mLong;
+
+    private double walkingSpeed = 0.0;
+    private double distance = 0;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,14 +68,22 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         start_btn = (Button) findViewById(R.id.start_btn);
         stop_btn = (Button) findViewById(R.id.stop_btn);
+        capture_btn = (Button) findViewById(R.id.capture_btn);
         textView = (TextView) findViewById(R.id.textView);
         speedView = (TextView) findViewById(R.id.speed);
+        distanceView = (TextView) findViewById(R.id.distance);
+        speedInput = (EditText) findViewById(R.id.editText);
         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
 
 
         start_btn.setOnClickListener(this);
         stop_btn.setOnClickListener(this);
+        capture_btn.setOnClickListener(this);
         rLayout.setOnClickListener(this);
+
+        alertZoneLocation = new Location("alertZoneLocation");
+        alertZoneLocation.setLatitude(cLat);
+        alertZoneLocation.setLongitude(cLong);
     }
 
     private void startLocationUpdates() {
@@ -84,10 +104,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
 
-    private void promptToEnableGPS() {
-        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        startActivity(intent);
-    }
 
 
     @Override
@@ -104,22 +120,58 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             case R.id.stop_btn:
                 locationManager.removeUpdates(this);
                 break;
+            case R.id.capture_btn:
+                captureLocation();
+                break;
         }
+    }
+
+    private void captureLocation() {
+
+        walkingSpeed = Double.parseDouble(speedInput.getText().toString());
+        System.out.println("distance = " + distance);
+        System.out.println("walkingSpeed = " + walkingSpeed);
+
+        final long time = Math.round((distance/walkingSpeed)*1000);
+
+        final Handler handler = new Handler();
+        final Timer timer = new Timer();
+        TimerTask capture = new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    public void run() {
+                        try {
+                            String data = mLat+","+mLong+","+distance+","+time+","+walkingSpeed+"\n";
+                            writeToFile(data);
+
+                            Toast.makeText(MainActivity.this,"Captured",Toast.LENGTH_LONG).show();
+                            Log.v(TAG,data);
+
+                            timer.cancel();
+                        } catch (Exception e) {
+                            Log.d(TAG,"Failed to write due to TimerTask");
+                        }
+                    }
+                });
+            }
+        };
+        timer.schedule(capture, time);
     }
 
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            textView.setText(location.getLatitude() + "-----" + location.getLongitude());
+            mLat = location.getLatitude();
+            mLong = location.getLongitude();
+            distance = location.distanceTo(alertZoneLocation);
+
+            textView.setText(mLat + " ----- " + mLong);
             speedView.setText(String.valueOf(location.getSpeed()));
+            distanceView.setText(String.valueOf(distance));
 
-            Log.d(TAG,location.getLatitude() + "-----" + location.getLongitude());
-            Log.d(TAG,location.getLatitude() + "-----" + location.getSpeed());
-
-            speed = location.getSpeed();
-            if(location.getSpeed()!= 0.0){
-                writeToFile(String.valueOf(speed) + "\n");
-            }
+            Log.d(TAG,location.getLatitude() + " ----- " + location.getLongitude());
+            Log.d(TAG,String.valueOf(distance));
         }
     }
 
@@ -149,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
 
         // Create the file.
-        File file = new File(folder, "walking_speed.txt");
+        File file = new File(folder, "energy.csv");
 
         try {
             if(!file.exists()){

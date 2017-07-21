@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Environment;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -21,6 +22,11 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 
 public class MainActivity extends AppCompatActivity implements LocationListener, View.OnClickListener {
 
@@ -28,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     private LocationManager locationManager;
 
+    private double mLat,mLong;
 
     boolean once = true;
 
@@ -121,6 +128,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             case R.id.stop_btn:
                 locationManager.removeUpdates(this);
                 break;
+            case R.id.pickButton:
+                writeToFile(mLat+","+mLong+"\n","location_log");
+                break;
         }
     }
 
@@ -131,7 +141,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 textView.setText(location.getLatitude() + "-----" + location.getLongitude() + "---first");
                 once = false;
             }else{
-                textView.setText(location.getLatitude() + "-----" + location.getLongitude());
+                mLat = location.getLatitude();
+                mLong = location.getLongitude();
+                textView.setText(mLat + "-----" + mLong);
             }
 
             Log.d(TAG,location.getLatitude() + "-----" + location.getLongitude());
@@ -152,5 +164,37 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     public void onProviderDisabled(String provider) {
     }
 
+
+    public void writeToFile(String data,String filename) {
+
+        String path = Environment.getExternalStorageDirectory() + File.separator + "wifip2p";
+        // Create the folder.
+        File folder = new File(path);
+        if (!folder.exists()) {
+            // Make it, if it doesn't exit
+            folder.mkdirs();
+        }
+
+        // Create the file.
+        File file = new File(folder, filename+".csv");
+
+        try {
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileOutputStream fOut = new FileOutputStream(file,true);
+            OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+            myOutWriter.append(data);
+
+
+            Log.d(TAG," Successful data write ");
+            myOutWriter.close();
+
+            fOut.flush();
+            fOut.close();
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
 
 }

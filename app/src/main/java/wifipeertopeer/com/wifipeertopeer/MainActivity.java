@@ -38,16 +38,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     boolean once = true;
 
-    String filename;
     private Button initialize_btn;
     private Button start_btn;
+    private Button pick_btn;
     private Button stop_btn;
     private TextView textView;
     private RelativeLayout rLayout;
 
 
-    double latitude;
-    double longitude;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         initialize_btn = (Button) findViewById(R.id.initialize_btn);
         start_btn = (Button) findViewById(R.id.start_btn);
         stop_btn = (Button) findViewById(R.id.stop_btn);
+        pick_btn = (Button) findViewById(R.id.pickButton);
         textView = (TextView) findViewById(R.id.textView);
         rLayout = (RelativeLayout)findViewById(R.id.mainLayout);
 
@@ -64,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         initialize_btn.setOnClickListener(this);
         start_btn.setOnClickListener(this);
         stop_btn.setOnClickListener(this);
+        pick_btn.setOnClickListener(this);
+        pick_btn.setOnClickListener(this);
         rLayout.setOnClickListener(this);
     }
 
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
     private void initializeGPS() {
 
-        promptToEnableGPS();
+        //promptToEnableGPS();
 
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
